@@ -7,8 +7,8 @@ from typing import Optional
 
 from pydantic import BaseModel, root_validator
 
-from classes.extended_meeting_class import ExtendedMeeting, extended_meeting_to_simplified_json
-from general_validators import is_valid_hexadecimal_colour
+from .extended_meeting_class import ExtendedMeeting, extended_meeting_to_simplified_json
+from ..general_validators import is_valid_hexadecimal_colour
 
 
 class CalendarLogical(BaseModel):

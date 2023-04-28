@@ -6,7 +6,7 @@ from typing import Optional
 
 from pydantic import BaseModel, root_validator
 
-from constants import CUMULATIVE_PROGRAM_MAP_KEY_WORD
+from ..constants import CUMULATIVE_PROGRAM_MAP_KEY_WORD
 
 
 class ProgramMap(BaseModel):

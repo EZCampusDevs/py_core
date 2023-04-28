@@ -7,8 +7,8 @@ from typing import Optional, List
 
 from pydantic import BaseModel, root_validator
 
-from classes.extended_meeting_class import ExtendedMeeting
-from classes.meeting_class import Meeting, meetings_are_time_valid
+from .extended_meeting_class import ExtendedMeeting
+from .meeting_class import Meeting, meetings_are_time_valid
 
 
 class Course(BaseModel):

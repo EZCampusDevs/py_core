@@ -7,7 +7,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from classes.course_class import Course
+from .course_class import Course
 
 
 class CourseOptimizerCriteria(BaseModel):

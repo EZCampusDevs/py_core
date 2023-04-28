@@ -6,8 +6,8 @@ structures and data values.
 
 from pydantic import root_validator, validator
 
-from classes.meeting_class import Meeting
-from general_validators import is_valid_hexadecimal_colour
+from .meeting_class import Meeting
+from ..general_validators import is_valid_hexadecimal_colour
 
 day_dict = {0: "MO", 1: "TU", 2: "WE", 3: "TH", 4: "FR", 5: "SA", 6: "SU"}
 

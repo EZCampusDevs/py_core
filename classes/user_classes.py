@@ -17,7 +17,7 @@ import bcrypt
 from fastapi import HTTPException, status
 from pydantic import BaseModel, validator, root_validator
 
-from constants import USERNAME_MIN_LEN, USERNAME_MAX_LEN, EMAIL_MIN_LEN, EMAIL_MAX_LEN, PASS_MIN_LEN, PASS_MAX_LEN, \
+from ..constants import USERNAME_MIN_LEN, USERNAME_MAX_LEN, EMAIL_MIN_LEN, EMAIL_MAX_LEN, PASS_MIN_LEN, PASS_MAX_LEN, \
     NAME_MIN_LEN, NAME_MAX_LEN, DESC_MAX_LEN, PROGRAM_MAX_LEN, YEAR_OF_STUDY_MIN, YEAR_OF_STUDY_MAX
 
 API_406_USERNAME_INVALID = HTTPException(
