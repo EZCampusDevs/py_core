@@ -12,21 +12,10 @@ from ..constants import CUMULATIVE_PROGRAM_MAP_KEY_WORD
 class ProgramMap(BaseModel):
     """Program map class.
 
-    name:
-    course_codes:
-    year:
-    semester:
-    semester_keyword:
-    semester_count:
-    total_years:
-    total_semesters_count:
-    category:
-    description:
-
     Examples:
         >>> ProgramMap( \
                 is_abstracted=False, \
-                school="OTLS", \
+                school_short_name="OTLS", \
                 name="Mechatronics Engineering (2021 Entry and later)", \
                 manifest_list=["MATH2070U", "MECE2420U", "MECE2430U",  \
                               "METE2020U", "METE2030U", "STAT2800U"], \
@@ -39,20 +28,20 @@ class ProgramMap(BaseModel):
                 category="Engineering", \
                 description="example_description" \
             )
-        ProgramMap(is_abstracted=False, school='OTLS', name='Mechatronics Engineering (2021 Entry and later)', manifest_list=['MATH2070U', 'MECE2420U', 'MECE2430U', 'METE2020U', 'METE2030U', 'STAT2800U'], year=2, semester=2, semester_keyword='Winter', semester_count=4, total_years=4, total_semesters_count=8, category='Engineering', description='example_description')
+        ProgramMap(is_abstracted=False, school_short_name='OTLS', name='Mechatronics Engineering (2021 Entry and later)', manifest_list=['MATH2070U', 'MECE2420U', 'MECE2430U', 'METE2020U', 'METE2030U', 'STAT2800U'], year=2, semester=2, semester_keyword='Winter', semester_count=4, total_years=4, total_semesters_count=8, category='Engineering', description='example_description')
         >>> ProgramMap( \
                 is_abstracted=True, \
-                school="PAIN", \
+                school_short_name="PAIN", \
                 name="Best Engineering", \
                 manifest_list=["Mechatronics Y2S1", "Mechatronics Y2S2"], \
                 semester_keyword="Fall, Winter", \
                 category=f"({CUMULATIVE_PROGRAM_MAP_KEY_WORD}) Engineering", \
                 description="example_description" \
             )
-        ProgramMap(is_abstracted=True, school='PAIN', name='Best Engineering', manifest_list=['Mechatronics Y2S1', 'Mechatronics Y2S2'], year=None, semester=None, semester_keyword='Fall, Winter', semester_count=None, total_years=None, total_semesters_count=None, category='(CUMULATIVE) Engineering', description='example_description')
+        ProgramMap(is_abstracted=True, school_short_name='PAIN', name='Best Engineering', manifest_list=['Mechatronics Y2S1', 'Mechatronics Y2S2'], year=None, semester=None, semester_keyword='Fall, Winter', semester_count=None, total_years=None, total_semesters_count=None, category='(CUMULATIVE) Engineering', description='example_description')
     """
     is_abstracted: bool
-    school: str
+    school_short_name: str
     name: str
     manifest_list: list[str]  # List of program map names for is_abstracted, else list of course codes.
     year: Optional[int]  # Probably None for is_abstracted.
@@ -128,7 +117,7 @@ class ProgramMap(BaseModel):
 
         return ProgramMap(
             is_abstracted=simple.is_abstracted,
-            school=simple.school,
+            school_short_name=simple.school_short_name,
             name=simple.name,
             manifest_list=simple.manifest_list,
             year=simple.year if "\"year\"" in json_str else None,

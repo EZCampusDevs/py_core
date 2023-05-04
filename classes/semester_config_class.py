@@ -14,8 +14,8 @@ load_dotenv()
 
 class SemesterConfig(BaseModel):
     """Semester Config class, offers a standardized single object to represent all configs."""
-    school: str  # Example: OTU
-    name: str  # Example: OTU Undergrad Fall 2022
+    school_short_name: str  # Example: OTU.
+    name: str  # Example: OTU Undergrad Fall 2022.
     description: str = ""
     semester: int
     semester_start: datetime
@@ -61,17 +61,15 @@ class SemesterConfig(BaseModel):
             json string of the SemesterConfig object.
         """
         simple = json.loads(json_str, object_hook=lambda d: SimpleNamespace(**d))
-
         return SemesterConfig(
-            school=simple.school,
+            school_short_name=simple.school_short_name,
             name=simple.name,
             description=simple.description,
             semester=simple.semester,
             semester_start=datetime.fromisoformat(simple.semester_start),
             semester_end=datetime.fromisoformat(simple.semester_end),
             course_api_ref=simple.course_api_ref,
-            course_api_params=vars(simple.course_api_params)
-            # vars() converts SimpleNamespace to dict.
+            course_api_params=vars(simple.course_api_params)  # vars() converts SimpleNamespace to dict.
         )
 
 
@@ -88,5 +86,4 @@ def decode_config_from_json(json_file_path: str) -> SemesterConfig:
     """
     with open(json_file_path) as json_config_file:
         json_str = json_config_file.read()
-
     return SemesterConfig.from_json(json_str)
