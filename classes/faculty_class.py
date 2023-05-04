@@ -3,6 +3,7 @@
 The Faculty class and by extension the module's functions represent universal faculty structures and data values.
 """
 
+import re
 from typing import Optional
 
 from pydantic import BaseModel, validator
@@ -29,3 +30,25 @@ class Faculty(BaseModel):
         if isinstance(v, int) and not (0 <= v <= 100):
             raise ValueError(f"With <int> expected 0 <= rating <= 100, got rating={v}")
         return v
+
+    @validator("name")
+    def faculty_name_cleanup(cls, v):
+        return name_cleanup(v)
+
+
+def name_cleanup(source_name: str) -> str:
+    """Cleanup of str for instructor name.
+
+    Args:
+        source_name: Original instructor name str.
+
+    Returns:
+        Cleaned up instructor name str.
+
+    Examples:
+        >>> name_cleanup(source_name="!@#ABCde f123'.-_")
+        'abcdef'
+    """
+    if isinstance(source_name, str):
+        # Ensure only lowercase alphabetical characters.
+        return "".join(re.findall("[a-z]", source_name.lower()))
