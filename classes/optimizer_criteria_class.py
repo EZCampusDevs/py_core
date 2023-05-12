@@ -84,7 +84,11 @@ class CourseOptimizerCriteria(BaseModel):
             general_multiplier += 0.25
             for sub in self.available_times:
                 for mt in course.class_time:
-                    if mt.weekday_int == sub[0] and (sub[1] <= mt.time_start < mt.time_end <= sub[2]):
+                    if sub[0] in mt.decode_days_of_week().values() \
+                            and (sub[1] <= mt.time_start <= sub[2] or sub[1] <= mt.time_end <= sub[2]):
+                        # TODO(Daniel): This is an inaccurate representation ^^^!
+                        #  Use some form of linear or function based rating scaling representing what percentage of a
+                        #  meeting is within/outside the rating available_times criteria.
                         rating += (mt.num_actual_meetings() * self.available_times_weight)
         if self.is_virtual is not None and self.is_virtual_weight > 0:
             if self.is_virtual == course.is_virtual:
@@ -100,7 +104,7 @@ class CourseOptimizerCriteria(BaseModel):
         # because it has more meetings.
         if self.high_prof_rating is not None and self.high_prof_rating_weight > 0:
             if self.high_prof_rating:
-                instructor_rating = course.instructor_rating
+                instructor_rating = sum([f.rating for f in course.instructors])
                 if instructor_rating is not None:
                     general_multiplier += 0.25
                     rating += (instructor_rating * 100 * self.high_prof_rating_weight)

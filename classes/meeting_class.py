@@ -17,32 +17,29 @@ from typing import Optional
 # TEST CODE ############################################################################################################
 from pydantic import BaseModel, root_validator
 
+from .. import general
+
 
 class Meeting(BaseModel):
     """Meeting class defines an instance of when a course meeting occurs.
 
-    time_start: meeting start time.
-    time_end: meeting end time.
-    weekday_int: weekday int value.
+    time_start: Meeting start time.
+    time_end: Meeting end time.
+    days_of_week: Days of the week as int value.
         Follows datetime.datetime.weekday() index convention (0 = Monday, 1 = Tuesday, ..., 6 = Sunday).
-    date_start: meeting start date window.
-    date_end: meeting end date window.
-    repeat_timedelta_days: represents a datetime.timedelta in days showing meeting repeat intervals, if a meeting does
+    date_start: Meeting start date window.
+    date_end: Meeting end date window.
+    repeat_timedelta_days: Represents a datetime.timedelta in days showing meeting repeat intervals, if a meeting does
         not value = 0.
-    location: location info (Usually format of: "Campus Building Room").
+    location: Location info.
 
     Notes:
-        Repetition via repeat_timedelta_days is only allowed if the meeting is
-        less than or equal to 1 day.
-
-    Examples:
-        Meeting(time_start=time(9, 40), time_end=time(11, 0), weekday_int=0, date_start=date(2022, 1, 17),
-            date_end=date(2022, 4, 14), repeat_timedelta_days=7, location='UOW SYN SYN')
+        Repetition via repeat_timedelta_days is only allowed if the meeting is less than or equal to 1 day.
     """
     time_start: time = time.min
     time_end: time = time.max
     # In the event times are not specified, assume all day Meeting.
-    weekday_int: int
+    days_of_week: int
     date_start: date
     date_end: date
     repeat_timedelta_days: int = 0
@@ -93,30 +90,26 @@ class Meeting(BaseModel):
                                  f"date_end={date_end}")
         return values
 
+    def decode_days_of_week(self) -> dict[str, bool]:
+        return general.decode_days_of_week(self.days_of_week)
+
     def get_actual_date_start(self) -> date:
         """Get the actual date of the first matching weekday_int.
 
         Returns:
             First datetime.date of the actual date which the meeting starts.
-
-        Say a Meeting object has a self.weekday_int of 0 (representing a meeting on Monday), but has a self.date_start
-        value that has a weekday (int) value that is not 0.
-            Under certain circumstances a Meeting object can have a self.date_start that does not fall on the
-            self.weekday_int. This commonly occurs with Courses running repeating meetings weekly/biweekly, due to the
-            way schools might set their date start and end. They often set start and end dates of weekly courses with
-            the start and end of the semester.
         """
-        return forward_weekday_target(self.weekday_int, self.date_start)
+        return min([forward_weekday_target(i, self.date_start)
+                    for i, val in enumerate(self.decode_days_of_week().values()) if val])
 
     def get_actual_date_end(self) -> date:
         """Get the actual date of the last matching weekday_int.
 
         Returns:
             Last datetime.date of the actual date which the meeting ends.
-
-        This function need and behaviour is very similar to that of self.get_actual_date_start().
         """
-        return backward_target_weekday(self.weekday_int, self.date_end)
+        return max([backward_target_weekday(i, self.date_end)
+                    for i, val in enumerate(self.decode_days_of_week().values()) if val])
 
     def num_actual_meetings(self) -> int:
         """Get the number of times a meeting actually occurs essentially is the sum of each reoccurrence.
@@ -167,14 +160,14 @@ class Meeting(BaseModel):
             Course from the decoded object.
         """
         simple = json.loads(json_str, object_hook=lambda d: SimpleNamespace(**d))
-        return Meeting(time_start=simple.time_start, time_end=simple.time_end, weekday_int=simple.weekday_int,
+        return Meeting(time_start=simple.time_start, time_end=simple.time_end, days_of_week=simple.days_of_week,
                        date_start=simple.date_start, date_end=simple.date_end,
                        repeat_timedelta_days=simple.repeat_timedelta_days, location=simple.location)
 
     def get_raw_str(self):
         return (f"time_start={self.time_start}\n"
                 f"time_end={self.time_end}\n"
-                f"weekday_int={self.weekday_int}\n"
+                f"days_of_week={self.days_of_week} -> ({self.decode_days_of_week()})\n"
                 f"date_start={self.date_start}\n"
                 f"date_end={self.date_end}\n"
                 f"repeat_timedelta_days={self.repeat_timedelta_days}\n"
@@ -365,7 +358,9 @@ def meetings_are_time_valid(mt_list: list[Meeting], detailed: bool = False) -> b
     # [Monday, Tuesday, ..., Sunday] <- Using weekday indexes.
 
     for meeting in mt_list:
-        week[meeting.weekday_int].append(meeting)
+        for i, val in enumerate(meeting.decode_days_of_week().values()):
+            if val:
+                week[i].append(meeting)
 
     for day in week:
         if len(day) >= 3:  # More than 3 meetings to compare.

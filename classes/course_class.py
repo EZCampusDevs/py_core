@@ -175,7 +175,7 @@ def schedule_to_simplified_json(course_list: list[Course]) -> list[dict]:
                 {
                     "time_start": mt.time_start.isoformat(),
                     "time_end": mt.time_end.isoformat(),
-                    "weekday_int": mt.weekday_int,
+                    "days_of_week": mt.days_of_week,
                     "date_start": mt.get_actual_date_start().isoformat(),
                     "date_end": mt.get_actual_date_end().isoformat(),
                     # Notice here unlike the format using by the backend logic, it is sending the simplified actual
@@ -204,7 +204,7 @@ def course_to_extended_meetings(course_list: list[Course]) -> list[ExtendedMeeti
             ExtendedMeeting(
                 time_start=mt.time_start,
                 time_end=mt.time_end,
-                weekday_int=mt.weekday_int,
+                days_of_week=mt.days_of_week,
                 date_start=mt.date_start,
                 date_end=mt.date_end,
                 repeat_timedelta_days=mt.repeat_timedelta_days,
