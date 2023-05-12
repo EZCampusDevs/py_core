@@ -29,16 +29,11 @@ class Course(BaseModel):
     seats_available: Optional[int]  # Defaults if not provided. Aka enrollment seats available.
     is_virtual: bool
     restrictions: Optional[dict]  # JSON data for class registration restrictions.
-    campus_description: Optional[str]  # Non-essential (api forwarded) data.
     instructional_method: Optional[str]  # Non-essential (api forwarded) data.
-    instructional_method_description: Optional[str]  # Non-essential (api forwarded) data.
-    is_open: Optional[bool]  # Non-essential (api forwarded) data.  # TODO(Daniel): what is this exactly?
+    is_open: Optional[bool]  # Non-essential (api forwarded) data.
     wait_count: Optional[int]  # Aka wait-list count. Non-essential (api forwarded) data.
     wait_max_capacity: Optional[int]  # Aka wait-list capacity. Non-essential (api forwarded) data.
     wait_available: Optional[int]  # Aka wait-list available. Non-essential (api forwarded) data.
-    credit_hours: Optional[int]  # Non-essential (api forwarded) data.
-    credit_hour_low: Optional[int]  # Non-essential (api forwarded) data.
-    credit_hour_high: Optional[int]  # Non-essential (api forwarded) data.
     instructors: List[Faculty] = []  # Aka list of Faculty.
 
     @validator("seats_available", always=True)
