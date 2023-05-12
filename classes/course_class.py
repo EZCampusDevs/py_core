@@ -8,7 +8,7 @@ from typing import Optional, List
 from pydantic import BaseModel, validator
 
 from .extended_meeting_class import ExtendedMeeting
-from .faculty_class import Faculty
+from .instructor_class import Instructor
 from .meeting_class import Meeting, meetings_are_time_valid
 
 
@@ -34,7 +34,7 @@ class Course(BaseModel):
     wait_count: Optional[int]  # Aka wait-list count. Non-essential (api forwarded) data.
     wait_max_capacity: Optional[int]  # Aka wait-list capacity. Non-essential (api forwarded) data.
     wait_available: Optional[int]  # Aka wait-list available. Non-essential (api forwarded) data.
-    instructors: List[Faculty] = []  # Aka list of Faculty.
+    instructors: List[Instructor] = []  # Aka list of Instructor.
 
     @validator("seats_available", always=True)
     def confirm_seats_available(cls, v, values):

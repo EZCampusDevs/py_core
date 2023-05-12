@@ -1,6 +1,6 @@
-"""Faculty class module.
+"""Instructor class module.
 
-The Faculty class and by extension the module's functions represent universal faculty structures and data values.
+The Instructor class and by extension the module's functions represent universal faculty structures and data values.
 """
 
 import re
@@ -9,14 +9,14 @@ from typing import Optional
 from pydantic import BaseModel, validator
 
 
-class Faculty(BaseModel):
-    """Faculty class defines a single faculty instructor.
+class Instructor(BaseModel):
+    """Instructor class defines a single faculty instructor.
 
     Examples:
-        >>> Faculty(faculty_id=1, name="Jeon, Daniel", email="daniel.jeon@domain.com", rating=50)
-        Faculty(faculty_id=1, name='Jeon, Daniel', email='daniel.jeon@domain.com', rating=50)
-        >>> Faculty(faculty_id=1)
-        Faculty(faculty_id=1, name=None, email=None, rating=None)
+        >>> Instructor(faculty_id=1, name="Jeon, Daniel", email="daniel.jeon@domain.com", rating=50)
+        Instructor(faculty_id=1, name='Jeon, Daniel', email='daniel.jeon@domain.com', rating=50)
+        >>> Instructor(faculty_id=1)
+        Instructor(faculty_id=1, name=None, email=None, rating=None)
     """
     faculty_id: int
     name: Optional[str]
@@ -32,7 +32,7 @@ class Faculty(BaseModel):
         return v
 
     @validator("name")
-    def faculty_name_cleanup(cls, v):
+    def instructor_name_cleanup(cls, v):
         return name_cleanup(v)
 
 
