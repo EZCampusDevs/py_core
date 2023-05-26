@@ -1,6 +1,7 @@
 """General computation code."""
 
-from . import constants
+# from . import constants
+import constants
 
 
 def encode_days_of_week(data: dict[str, bool]) -> int:
@@ -68,3 +69,77 @@ def decode_days_of_week(value) -> dict[str, bool]:
         "saturday": bool(value & constants.SATURDAY),
         "sunday": bool(value & constants.SUNDAY)
     }
+
+
+def encode_weekday_ints(data: list[int]) -> int:
+    """Encodes list of weekday ints to integer representation.
+
+    Examples:
+        >>> encode_weekday_ints([])
+        0
+        >>> encode_weekday_ints([0])
+        1
+        >>> encode_weekday_ints([1])
+        2
+        >>> encode_weekday_ints([2])
+        4
+        >>> encode_weekday_ints([6])
+        64
+        >>> encode_weekday_ints([0, 1])
+        3
+        >>> encode_weekday_ints([0, 1, 2, 3, 4, 5, 6])
+        127
+    """
+    value = 0
+    if 0 in data:
+        value |= constants.MONDAY
+    if 1 in data:
+        value |= constants.TUESDAY
+    if 2 in data:
+        value |= constants.WEDNESDAY
+    if 3 in data:
+        value |= constants.THURSDAY
+    if 4 in data:
+        value |= constants.FRIDAY
+    if 5 in data:
+        value |= constants.SATURDAY
+    if 6 in data:
+        value |= constants.SUNDAY
+    return value
+
+
+def decode_weekday_ints(value: int) -> list[int]:
+    """Decode integer representation of days to list of weekday ints.
+
+    Examples:
+        >>> decode_weekday_ints(0)
+        []
+        >>> decode_weekday_ints(1)
+        [0]
+        >>> decode_weekday_ints(2)
+        [1]
+        >>> decode_weekday_ints(4)
+        [2]
+        >>> decode_weekday_ints(64)
+        [6]
+        >>> decode_weekday_ints(3)
+        [0, 1]
+        >>> decode_weekday_ints(127)
+        [0, 1, 2, 3, 4, 5, 6]
+    """
+    data_list = []
+    if value & constants.MONDAY:
+        data_list.append(0)
+    if value & constants.TUESDAY:
+        data_list.append(1)
+    if value & constants.WEDNESDAY:
+        data_list.append(2)
+    if value & constants.THURSDAY:
+        data_list.append(3)
+    if value & constants.FRIDAY:
+        data_list.append(4)
+    if value & constants.SATURDAY:
+        data_list.append(5)
+    if value & constants.SUNDAY:
+        data_list.append(6)
+    return data_list
