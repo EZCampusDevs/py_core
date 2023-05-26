@@ -1,7 +1,6 @@
 """General computation code."""
 
-# from . import constants
-import constants
+from . import constants
 
 
 def encode_days_of_week(data: dict[str, bool]) -> int:
