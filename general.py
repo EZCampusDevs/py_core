@@ -40,7 +40,7 @@ def encode_days_of_week(data: dict[str, bool]) -> int:
     return value
 
 
-def decode_days_of_week(value) -> dict[str, bool]:
+def decode_days_of_week(value: None | int) -> None | dict[str, bool]:
     """Decodes integer representation of days to standard dictionary.
 
     Examples:
@@ -58,7 +58,10 @@ def decode_days_of_week(value) -> dict[str, bool]:
         {'monday': True, 'tuesday': True, 'wednesday': False, 'thursday': False, 'friday': False, 'saturday': False, 'sunday': False}
         >>> decode_days_of_week(127)
         {'monday': True, 'tuesday': True, 'wednesday': True, 'thursday': True, 'friday': True, 'saturday': True, 'sunday': True}
+        >>> decode_days_of_week(None)
     """
+    if value is None:
+        return None
     return {
         "monday": bool(value & constants.MONDAY),
         "tuesday": bool(value & constants.TUESDAY),
@@ -107,7 +110,7 @@ def encode_weekday_ints(data: list[int]) -> int:
     return value
 
 
-def decode_weekday_ints(value: int) -> list[int]:
+def decode_weekday_ints(value: None | int) -> None | list[int]:
     """Decode integer representation of days to list of weekday ints.
 
     Examples:
@@ -125,7 +128,10 @@ def decode_weekday_ints(value: int) -> list[int]:
         [0, 1]
         >>> decode_weekday_ints(127)
         [0, 1, 2, 3, 4, 5, 6]
+        >>> decode_weekday_ints(None)
     """
+    if value is None:
+        return None
     data_list = []
     if value & constants.MONDAY:
         data_list.append(0)
