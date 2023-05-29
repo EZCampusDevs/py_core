@@ -84,23 +84,29 @@ class Meeting(BaseModel):
     def decode_weekday_ints(self) -> list[int]:
         return [i for i, val in enumerate(self.decode_days_of_week().values()) if val]
 
-    def all_start_dates(self) -> list[date]:
+    def get_rrule(self) -> rrule | None:
         if self.occurrence_unit == "days(n)":
-            dts = list(rrule(DAILY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval))
+            return rrule(DAILY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval)
         elif self.occurrence_unit == "weeks(weekday)":
-            dts = list(rrule(WEEKLY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval))
+            return rrule(WEEKLY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval)
         elif self.occurrence_unit == "months(nth_weekday)":
             ordinal = (self.date_start.day - 1) // 7 + 1  # Determine with nth date_start.weekday() that date_start is.
             by_weekday = [MO(ordinal), TU(ordinal), WE(ordinal), TH(ordinal), FR(ordinal), SA(ordinal), SU(ordinal)]
-            dts = list(rrule(MONTHLY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval,
-                             byweekday=by_weekday[self.date_start.weekday()]))
+            return rrule(MONTHLY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval,
+                         byweekday=by_weekday[self.date_start.weekday()])
         elif self.occurrence_unit == "months(nth)":
-            dts = list(rrule(MONTHLY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval))
+            return rrule(MONTHLY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval)
         elif self.occurrence_unit == "years(nth)":
-            dts = list(rrule(YEARLY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval))
+            return rrule(YEARLY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval)
         else:  # self.occurrence_unit is None:
+            return None
+
+    def all_start_dates(self) -> list[date]:
+        mt_rrule = self.get_rrule()
+        if isinstance(mt_rrule, rrule):
+            return [dt.date() for dt in list(mt_rrule)]
+        else:
             return [self.date_start]
-        return [dt.date() for dt in dts]
 
     def num_of_occurrences(self) -> int:
         return len(self.all_start_dates())
