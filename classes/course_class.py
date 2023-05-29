@@ -53,12 +53,7 @@ class Course(BaseModel):
         Notes:
             Used in special computations such as schedule optimization and event planning.
         """
-        representation = f"{self.course_code} {self.class_type}"
-        # Alternative representation:
-        # representation = (f"{course.course_code} {course.link_tag[0]}"
-        #                   if course.link_tag is not None
-        #                   else f"{course.course_code} None")
-        return representation
+        return f"{self.course_code} {self.class_type}"
 
     def num_actual_meetings(self) -> int:
         """Get the total number of times a course meeting actually occurs (sum of meeting's reoccurrence).
@@ -145,45 +140,6 @@ def merge_all_restrictions(course_list: list[Course]) -> dict:
                 all_restrictions[r_type] = list(set(all_restrictions[r_type] + r_list))
                 # Add missing restrictions in the value's sub list.
     return all_restrictions
-
-
-def schedule_to_simplified_json(course_list: list[Course]) -> list[dict]:
-    """Converts a list of Course objects (schedule) to a simplified json list.
-
-    Args:
-        course_list: List of course objects.
-
-    Returns:
-        json list of dicts of the schedule.
-    """
-    schedule = []
-    for c in course_list:
-        new_event = {
-            "title":
-                f"{c.title} {c.class_type[:3].upper()} ({c.course_code})",
-            "description":
-                f"Instructor{'s' if len(c.instructors) > 1 else ''}: {c.faculty_instructors_text()}\n"
-                f"CRN: {c.crn}\n"
-                f"Section: {c.section}\n"
-                f"Seats filled: {c.seats_filled}\n"
-                f"Max capacity: {c.max_capacity}\n"
-                f"Seats available: {c.seats_available}\n",
-            "meetings": [
-                {
-                    "time_start": mt.time_start.isoformat(),
-                    "time_end": mt.time_end.isoformat(),
-                    "days_of_week": mt.days_of_week,
-                    "date_start": mt.get_actual_date_start().isoformat(),
-                    "date_end": mt.get_actual_date_end().isoformat(),
-                    # Notice here unlike the format using by the backend logic, it is sending the simplified actual
-                    # date starts and ends
-                    "occurrence_timedelta_days": mt.occurrence_timedelta_days,
-                    "location": mt.location
-                } for mt in c.class_time
-            ]
-        }
-        schedule.append(new_event)
-    return schedule
 
 
 def course_to_extended_meetings(course_list: list[Course]) -> list[ExtendedMeeting]:
