@@ -23,16 +23,10 @@ class ExtendedMeeting(Meeting):
         max_capacity >= seats_filled.
     is_virtual: Defines if the class is completely virtual/online.
     """
-    # time_start: time -> Meeting attribute.
-    # time_end: time -> Meeting attribute.
-    # days_of_week: int -> Meeting attribute.
-    # date_start: date -> Meeting attribute.
-    # date_end: date -> Meeting attribute.
-    # repeat_timedelta_days: int -> Meeting attribute.
-    # location: str -> Meeting attribute.
     name: str
     description: str
     seats_filled: int
+    attendees: list[str]
     max_capacity: int
     is_virtual: bool
     colour: str | None
@@ -56,30 +50,3 @@ class ExtendedMeeting(Meeting):
         if not is_valid_hexadecimal_colour(v):
             raise ValueError("Invalid hexadecimal colour code")
         return v
-
-
-def extended_meeting_to_simplified_json(extended_meeting: ExtendedMeeting) -> dict[str, int | str | None]:
-    """Converts an ExtendedMeeting objects to a simplified json list.
-
-    Args:
-        extended_meeting: ExtendedMeeting object.
-
-    Returns:
-        json dict of the ExtendedMeeting.
-    """
-    return {
-        "title": f"{extended_meeting.name}",
-        "description": f"{extended_meeting.description}\n"
-                       f"Is virtual: {extended_meeting.is_virtual}\n"
-                       f"Seats filled: {extended_meeting.seats_filled}\n"
-                       f"Max capacity: {extended_meeting.max_capacity}\n",
-        "time_start": extended_meeting.time_start.isoformat(),
-        "time_end": extended_meeting.time_end.isoformat(),
-        "days_of_week": extended_meeting.days_of_week,
-        "date_start": extended_meeting.get_actual_date_start().isoformat(),
-        "date_end": extended_meeting.get_actual_date_end().isoformat(),
-        # Unlike the format using by the backend logic, it is sending the simplified actual date starts and ends.
-        "repeat_timedelta_days": extended_meeting.repeat_timedelta_days,
-        "location": extended_meeting.location,
-        "colour": extended_meeting.colour
-    }
