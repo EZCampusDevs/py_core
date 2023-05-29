@@ -11,6 +11,14 @@ FRIDAY = 0b001_0000
 SATURDAY = 0b010_0000
 SUNDAY = 0b100_0000
 
+# Meeting class occurrence units.
+OU_DAYS = "days(n)"
+OU_WEEKS = "weeks(weekday)"
+OU_MONTHS_WD = "months(nth_weekday)"
+OU_MONTHS_N = "months(nth)"
+OU_YEARS = "years(nth)"
+OU_ALLOWED = [None, OU_DAYS, OU_WEEKS, OU_MONTHS_WD, OU_MONTHS_N, OU_YEARS]
+
 # Minimum and maximum character lengths. If a minimum is not specified it's likely because it can be empty or null.
 USERNAME_MIN_LEN = 4
 USERNAME_MAX_LEN = 30

@@ -13,7 +13,7 @@ from .meeting_class import Meeting, meetings_conflict
 
 
 class Course(BaseModel):
-    """Course class defines a single general course identified by a CRN (course registration number)."""
+    """Course class defines a single general course identified by a CRN."""
     course_code: str  # Aka course code, example: "BIOL1020U".
     subject: Optional[str]  # Aka subject, example: "BIOL".
     subject_long: Optional[str]  # Aka subject long, example: "Biology".
@@ -31,9 +31,8 @@ class Course(BaseModel):
     restrictions: Optional[dict]  # JSON data for class registration restrictions.
     instructional_method: Optional[str]  # Non-essential (api forwarded) data.
     is_open: Optional[bool]  # Non-essential (api forwarded) data.
-    wait_count: Optional[int]  # Aka wait-list count. Non-essential (api forwarded) data.
-    wait_max_capacity: Optional[int]  # Aka wait-list capacity. Non-essential (api forwarded) data.
-    wait_available: Optional[int]  # Aka wait-list available. Non-essential (api forwarded) data.
+    wait_filled: Optional[int]  # Aka wait-list count. Non-essential (api forwarded) data.
+    wait_capacity: Optional[int]  # Aka wait-list capacity. Non-essential (api forwarded) data.
     instructors: List[Instructor] = []  # Aka list of Instructor.
 
     @validator("seats_available", always=True)

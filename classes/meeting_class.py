@@ -10,6 +10,7 @@ from types import SimpleNamespace
 from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY, YEARLY, MO, TU, WE, TH, FR, SA, SU
 from pydantic import BaseModel, root_validator, validator
 
+from .. import constants
 from .. import general
 
 
@@ -19,9 +20,11 @@ class Meeting(BaseModel):
     time_end: time = time.max  # Meeting end time, In the event times are not specified, assume all day Meeting.
     date_start: date  # Meeting start date window.
     date_end: date  # Meeting end date window.
-    occurrence_unit: None | str
-    occurrence_interval: None | int  # If occurrence_unit is None, occurrence_interval must be None.
-    days_of_week: None | int  # Weekdays as 1 int value, days_of_week is not None only when occurrence_unit is "weeks".
+    occurrence_unit: None | str = None
+    occurrence_interval: None | int = None  # If occurrence_unit is None, occurrence_interval must be None.
+    days_of_week: int = None  # Weekdays as 1 int value.
+    # NOTE: Functionally speaking, days_of_week really only affects Meetings with the occurrence unit of weeks.
+    # This is corrected to None by a root_validator if days_of_week is specified but not needed.
     location: str = ""
 
     @root_validator()
@@ -42,9 +45,8 @@ class Meeting(BaseModel):
 
     @validator("occurrence_unit")
     def verify_occurrence_unit(cls, v):
-        ALLOWED_UNITS = [None, "days(n)", "weeks(weekday)", "months(nth_weekday)", "months(nth)", "years(nth)"]
-        if v not in ALLOWED_UNITS:
-            raise ValueError(f"occurrence_unit={v} is not allowed. Must be one of the following: {ALLOWED_UNITS}")
+        if v not in constants.OU_ALLOWED:
+            raise ValueError(f"occurrence_unit={v} is not allowed. Allowed units: {constants.OU_ALLOWED}")
         return v
 
     @root_validator()
@@ -54,16 +56,14 @@ class Meeting(BaseModel):
         if occurrence_unit is not None and occurrence_interval < 1:
             raise ValueError(f"occurrence_unit={occurrence_unit}, expected occurrence_interval >= 1")
         elif occurrence_unit is None and occurrence_interval is not None:
-            raise ValueError(f"occurrence_unit={None}, expected occurrence_interval = {None}")
+            raise ValueError(f"occurrence_unit={None}, expected occurrence_interval={None}")
         return values
 
     @root_validator()
     def verify_days_of_week(cls, values):
         occurrence_unit = values.get("occurrence_unit")
         days_of_week = values.get("days_of_week")
-        if occurrence_unit == "weeks(weekday)":
-            if days_of_week is None:
-                raise ValueError(f"occurrence_unit={occurrence_unit}, days_of_week cannot be {None}")
+        if occurrence_unit == constants.OU_WEEKS:
             try:
                 weekday_ints = general.decode_weekday_ints(days_of_week)
                 if len(weekday_ints) != len(set(weekday_ints)):
@@ -74,29 +74,32 @@ class Meeting(BaseModel):
             except:
                 raise ValueError(f"Incorrect usage of days_of_week")
         elif days_of_week is not None:
-            raise ValueError(
-                f"occurrence_unit={occurrence_unit}, expected days_of_week={None}, got days_of_week={days_of_week}")
+            values["days_of_week"] = None
+            # Alternative (error raising validation):
+            # raise ValueError(f"occurrence_unit={occurrence_unit}, expected days_of_week={None}, got {days_of_week}")
         return values
 
     def decode_days_of_week(self) -> dict[str, bool]:
         return general.decode_days_of_week(self.days_of_week)
 
     def decode_weekday_ints(self) -> list[int]:
-        return [i for i, val in enumerate(self.decode_days_of_week().values()) if val]
+        return general.decode_weekday_ints(self.days_of_week)
 
     def get_rrule(self) -> rrule | None:
-        if self.occurrence_unit == "days(n)":
+        if self.occurrence_unit == constants.OU_DAYS:
             return rrule(DAILY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval)
-        elif self.occurrence_unit == "weeks(weekday)":
-            return rrule(WEEKLY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval)
-        elif self.occurrence_unit == "months(nth_weekday)":
+        elif self.occurrence_unit == constants.OU_WEEKS:
+            by_weekday = [MO, TU, WE, TH, FR, SA, SU]
+            return rrule(WEEKLY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval,
+                         byweekday=[by_weekday[w_i] for w_i in self.decode_weekday_ints()])
+        elif self.occurrence_unit == constants.OU_MONTHS_WD:
             ordinal = (self.date_start.day - 1) // 7 + 1  # Determine with nth date_start.weekday() that date_start is.
             by_weekday = [MO(ordinal), TU(ordinal), WE(ordinal), TH(ordinal), FR(ordinal), SA(ordinal), SU(ordinal)]
             return rrule(MONTHLY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval,
                          byweekday=by_weekday[self.date_start.weekday()])
-        elif self.occurrence_unit == "months(nth)":
+        elif self.occurrence_unit == constants.OU_MONTHS_N:
             return rrule(MONTHLY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval)
-        elif self.occurrence_unit == "years(nth)":
+        elif self.occurrence_unit == constants.OU_YEARS:
             return rrule(YEARLY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval)
         else:  # self.occurrence_unit is None:
             return None
