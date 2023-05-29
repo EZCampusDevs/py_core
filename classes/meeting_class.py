@@ -216,7 +216,7 @@ def meetings_conflict(mt_list: list[Meeting], detailed: bool = False) -> bool | 
         for the first conflict found (Monday -> Sunday, early -> later time).
 
     Returns:
-        False if a list of Meetings has a time conflict(s), True if no time conflict(s) exist.
+        True if a list of Meetings has a time conflict(s), False if no time conflict(s) exist.
     """
     if len(mt_list) <= 1:
         return (False, None) if detailed else False

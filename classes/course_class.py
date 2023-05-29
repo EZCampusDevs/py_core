@@ -9,7 +9,7 @@ from pydantic import BaseModel, validator
 
 from .extended_meeting_class import ExtendedMeeting
 from .instructor_class import Instructor
-from .meeting_class import Meeting, meetings_are_time_valid
+from .meeting_class import Meeting, meetings_conflict
 
 
 class Course(BaseModel):
@@ -70,10 +70,7 @@ class Course(BaseModel):
             Potential logic error due to bad data in of self.date_start and self.date_end. See:
             Meeting.num_actual_meetings() documentation.
         """
-        count = 0
-        for meeting in self.class_time:
-            count += meeting.num_actual_meetings()
-        return count
+        return sum([mt.num_of_occurrences() for mt in self.class_time])
 
     def faculty_instructors_text(self) -> str:
         return ", ".join(
@@ -88,21 +85,21 @@ class Course(BaseModel):
         ) if self.instructors else "N/A"
 
 
-def schedule_is_time_valid(course_list: list[Course]) -> bool:
+def schedule_time_conflicts(course_list: list[Course]) -> bool:
     """Determines if a list of Course objects (schedule) is has time conflicts.
 
     Args:
         course_list: List of course objects
 
     Returns:
-        True if a schedule has no time conflicts, False if time conflicts exist.
+        True if schedule has time conflicts, False if no time conflicts exist.
     """
     if not course_list:  # Empty list
         return True
     mt_list = []
     for course in course_list:
         mt_list += course.class_time
-    return meetings_are_time_valid(mt_list=mt_list)
+    return meetings_conflict(mt_list=mt_list)
 
 
 def get_min_students_of_courses(courses: list[Course]) -> int:
@@ -180,7 +177,7 @@ def schedule_to_simplified_json(course_list: list[Course]) -> list[dict]:
                     "date_end": mt.get_actual_date_end().isoformat(),
                     # Notice here unlike the format using by the backend logic, it is sending the simplified actual
                     # date starts and ends
-                    "repeat_timedelta_days": mt.repeat_timedelta_days,
+                    "occurrence_timedelta_days": mt.occurrence_timedelta_days,
                     "location": mt.location
                 } for mt in c.class_time
             ]
@@ -204,10 +201,11 @@ def course_to_extended_meetings(course_list: list[Course]) -> list[ExtendedMeeti
             ExtendedMeeting(
                 time_start=mt.time_start,
                 time_end=mt.time_end,
-                days_of_week=mt.days_of_week,
                 date_start=mt.date_start,
                 date_end=mt.date_end,
-                repeat_timedelta_days=mt.repeat_timedelta_days,
+                occurrence_unit=mt.occurrence_unit,
+                occurrence_interval=mt.occurrence_interval,
+                days_of_week=mt.days_of_week,
                 location="VIRTUAL" if c.is_virtual else str(mt.location),
                 name=f"{c.title} {c.class_type[:3].upper()} ({c.course_code})",
                 description=(
