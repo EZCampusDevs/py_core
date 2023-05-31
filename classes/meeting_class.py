@@ -22,6 +22,7 @@ class Meeting(BaseModel):
     date_end: date  # Meeting end date window.
     occurrence_unit: None | str = None
     occurrence_interval: None | int = None  # If occurrence_unit is None, occurrence_interval must be None.
+    occurrence_limit: date | int | None = None  # If occurrence_unit is None, occurrence_limit must be None.
     days_of_week: int = None  # Weekdays as 1 int value.
     # NOTE: Functionally speaking, days_of_week really only affects Meetings with the occurrence unit of weeks.
     # This is corrected to None by a root_validator if days_of_week is specified but not needed.
@@ -57,6 +58,16 @@ class Meeting(BaseModel):
             raise ValueError(f"occurrence_unit={occurrence_unit}, expected occurrence_interval >= 1")
         elif occurrence_unit is None and occurrence_interval is not None:
             raise ValueError(f"occurrence_unit={None}, expected occurrence_interval={None}")
+        return values
+
+    @root_validator()
+    def verify_occurrence_limit(cls, values):
+        occurrence_unit = values.get("occurrence_unit")
+        occurrence_limit = values.get("occurrence_limit")
+        if occurrence_unit is not None and occurrence_limit is None:
+            raise ValueError(f"occurrence_unit={occurrence_unit}, expected occurrence_interval != {None}")
+        elif occurrence_unit is None and occurrence_limit is not None:
+            raise ValueError(f"occurrence_unit={None}, expected occurrence_interval = {None}")
         return values
 
     @root_validator()
