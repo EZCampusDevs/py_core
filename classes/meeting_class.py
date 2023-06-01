@@ -247,8 +247,7 @@ def merge_weekly_occurrences(mt_1: Meeting, mt_2: Meeting) -> list[Meeting]:
             mt_1.time_start == mt_2.time_start and mt_1.time_end == mt_2.time_end
             and mt_1.occurrence_interval == mt_2.occurrence_interval and mt_1.occurrence_limit == mt_2.occurrence_limit
             and mt_1.location == mt_2.location):
-        weekday_ints = [1 if w1 == 1 or w2 == 1 else 0 for w1, w2 in
-                        list(zip(mt_1.decode_weekday_ints(), mt_2.decode_weekday_ints()))]
+        weekday_ints = list(set(mt_1.decode_weekday_ints() + mt_2.decode_weekday_ints()))
         return [Meeting(time_start=mt_1.time_start, time_end=mt_1.time_end,
                         date_start=min([mt_1.date_start, mt_2.date_start]),
                         date_end=min([mt_1.date_end, mt_2.date_end]), occurrence_unit=mt_1.occurrence_unit,
