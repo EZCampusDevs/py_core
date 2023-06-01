@@ -176,13 +176,13 @@ def course_to_extended_meetings(course_list: list[Course]) -> list[ExtendedMeeti
                 location="VIRTUAL" if c.is_virtual else str(mt.location),
                 name=f"{c.title} {c.class_type[:3].upper()} ({c.course_code})",
                 description=(
-                    f"Instructor{'s' if len(c.instructors) > 1 else ''}: {c.faculty_instructors_text()}\n"
-                    f"CRN: {c.crn}\n"
-                    f"Section: {c.section}\n"
-                    f"Seats filled: {c.seats_filled}\n"
-                    f"Max capacity: {c.max_capacity}\n"
-                    f"Seats available: {c.seats_available}\n"
-                    f"Has linked classes: {c.is_linked}"
+                    rf"Instructor{'s' if len(c.instructors) > 1 else ''}: {c.faculty_instructors_text()}\n"
+                    rf"CRN: {c.crn}\n"
+                    rf"Section: {c.section}\n"
+                    rf"Seats filled: {c.seats_filled}\n"
+                    rf"Max capacity: {c.max_capacity}\n"
+                    rf"Seats available: {c.seats_available}\n"
+                    rf"Has linked classes: {c.is_linked}"
                 ),
                 seats_filled=c.seats_filled,
                 max_capacity=c.max_capacity,
