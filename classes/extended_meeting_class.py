@@ -26,7 +26,6 @@ class ExtendedMeeting(Meeting):
     name: str
     description: str
     seats_filled: int
-    attendees: list[str]
     max_capacity: int
     is_virtual: bool
     colour: str | None
