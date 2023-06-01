@@ -222,6 +222,41 @@ def to_single_occurrences(mt: Meeting) -> list[Meeting]:
             for d in start_dates]
 
 
+def merged_meeting_occurrences(mt_list: list[Meeting]) -> list[Meeting]:
+    """Merge meetings via occurrences."""
+    if not mt_list:
+        return []
+
+    mts_merged = []
+    while True:
+        previous_count = len(mts_merged)
+        if len(mt_list) == 1:
+            break
+        mt_list.sort(key=lambda mt: (mt.occurrence_unit, mt.time_start, mt.time_end, mt.occurrence_interval,
+                                     mt.occurrence_limit, mt.location))
+        for i in range(1, len(mt_list), 1):
+            mts_merged += merge_weekly_occurrences(mt_1=mt_list[i - 1], mt_2=mt_list[i])
+        if len(mts_merged) == previous_count:  # Loop until merges are no longer possible
+            break
+        mt_list = mts_merged.copy()
+    return mts_merged.copy()
+
+
+def merge_weekly_occurrences(mt_1: Meeting, mt_2: Meeting) -> list[Meeting]:
+    if mt_1.occurrence_unit == mt_2.occurrence_unit == constants.OU_WEEKS and (
+            mt_1.time_start == mt_2.time_start and mt_1.time_end == mt_2.time_end
+            and mt_1.occurrence_interval == mt_2.occurrence_interval and mt_1.occurrence_limit == mt_2.occurrence_limit
+            and mt_1.location == mt_2.location):
+        weekday_ints = [1 if w1 == 1 or w2 == 1 else 0 for w1, w2 in
+                        list(zip(mt_1.decode_weekday_ints(), mt_2.decode_weekday_ints()))]
+        return [Meeting(time_start=mt_1.time_start, time_end=mt_1.time_end,
+                        date_start=min([mt_1.date_start, mt_2.date_start]),
+                        date_end=min([mt_1.date_end, mt_2.date_end]), occurrence_unit=mt_1.occurrence_unit,
+                        occurrence_interval=mt_1.occurrence_interval, occurrence_limit=mt_1.occurrence_limit,
+                        days_of_week=general.encode_weekday_ints(weekday_ints), location=mt_1.location)]
+    return [mt_1, mt_2]
+
+
 def meetings_conflict(mt_list: list[Meeting], detailed: bool = False) -> bool | tuple[bool, None | datetime]:
     """Determines if a list of Meeting objects (schedule) is has time conflicts.
 

@@ -9,7 +9,7 @@ from pydantic import BaseModel, validator
 
 from .extended_meeting_class import ExtendedMeeting
 from .instructor_class import Instructor
-from .meeting_class import Meeting, meetings_conflict
+from .meeting_class import Meeting, meetings_conflict, merged_meeting_occurrences
 
 
 class Course(BaseModel):
@@ -94,6 +94,17 @@ def schedule_time_conflicts(course_list: list[Course]) -> bool:
     for course in course_list:
         mt_list += course.class_time
     return meetings_conflict(mt_list=mt_list)
+
+
+def merge_course_meeting_occurrences(course: Course) -> Course:
+    return Course(course_code=course.course_code, subject=course.subject, subject_long=course.subject_long,
+                  crn=course.crn, class_type=course.class_type, title=course.title, section=course.section,
+                  class_time=merged_meeting_occurrences(course.class_time), is_linked=course.is_linked,
+                  link_tag=course.link_tag, seats_filled=course.seats_filled, max_capacity=course.max_capacity,
+                  seats_available=course.seats_available, is_virtual=course.is_virtual,
+                  restrictions=course.restrictions, instructional_method=course.instructional_method,
+                  is_open=course.is_open, wait_filled=course.wait_filled, wait_capacity=course.wait_capacity,
+                  instructors=course.instructors)
 
 
 def get_min_students_of_courses(courses: list[Course]) -> int:
