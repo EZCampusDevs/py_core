@@ -1,6 +1,7 @@
 # TODO: Tables should probably get some column name standardization fix.
 
 import os
+from datetime import datetime
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -51,8 +52,8 @@ def get_courses_via_data_id(data_id_list: list[int]) -> list[Course]:
             for mt_r in mt_result:
                 meeting_list.append(
                     Meeting(
-                        time_start=mt_r.begin_time,
-                        time_end=mt_r.end_time,
+                        time_start=datetime.strptime(mt_r.begin_time, "%H%M").time(),
+                        time_end=datetime.strptime(mt_r.end_time, "%H%M").time(),
                         date_start=mt_r.start_date,
                         date_end=mt_r.end_date,
                         occurrence_unit=None,  # TODO: Temporary hardcode, needs to be calculated at scraper level.
