@@ -9,7 +9,7 @@ from sqlalchemy import event
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 from ..course_tables import (TBL_Course, TBL_Course_Faculty, TBL_Meeting, TBL_Course_Data, TBL_Faculty, TBL_Class_Type)
-from ...classes.course_class import Course
+from ...classes.course_class import Course, merge_course_meeting_occurrences
 from ...classes.instructor_class import Instructor
 from ...classes.meeting_class import Meeting
 
@@ -97,4 +97,4 @@ def get_courses_via_data_id(data_id_list: list[int]) -> list[Course]:
                     instructors=faculty_list
                 )
             )
-    return course_list
+    return [merge_course_meeting_occurrences(c) for c in course_list]
