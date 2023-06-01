@@ -50,6 +50,26 @@ class Meeting(BaseModel):
         return v
 
     @root_validator()
+    def __override_course_occurrence_unit_correction(cls, values):
+        """WARNING: THIS MUST RUN BEFORE THE CONFLICTING VALIDATORS."""
+        # TODO: This is an override validator for course data. Ideally this should be done at the data/scraper level,
+        #  but this works too.
+        occurrence_unit = values.get("occurrence_unit")
+        date_start = values.get("date_start")
+        date_end = values.get("date_end")
+        days_of_week = values.get("days_of_week")
+
+        if (occurrence_unit is None and (date_end - date_start) >= timedelta(days=7) and isinstance(days_of_week, int)
+                and days_of_week != 0):
+            values["occurrence_unit"] = constants.OU_WEEKS
+            values["occurrence_interval"] = 1
+            values["occurrence_limit"] = date_end
+            new_date = min([forward_weekday_target(n, date_start) for n in general.decode_weekday_ints(days_of_week)])
+            values["date_start"] = new_date
+            values["date_end"] = new_date
+        return values
+
+    @root_validator()
     def verify_occurrence_interval(cls, values):
         occurrence_unit = values.get("occurrence_unit")
         occurrence_interval = values.get("occurrence_interval")
@@ -301,3 +321,56 @@ def meeting_conflict(mt_1: Meeting, mt_2: Meeting, detailed: bool = False) -> tu
         else:
             single_occurrence.append(mt_2)
         return meetings_conflict(mt_list=single_occurrence, detailed=detailed)
+
+
+def forward_weekday_target(target_weekday_int: int, base_date: date) -> date:
+    """Get the first instance of a date that matches the target weekday in that falls on or after the base date.
+
+    Args:
+        target_weekday_int: Target weekday we want on the date.
+            Follows datetime.datetime.weekday() index convention (0 = Monday, 1 = Tuesday, ..., 6 = Sunday).
+        base_date: Initial date to start on.
+
+    Returns:
+        New date with the correct target weekday.
+
+    Examples:
+        >>> forward_weekday_target(target_weekday_int=0, base_date=date(2022, 4, 1))
+        datetime.date(2022, 4, 4)
+        >>> forward_weekday_target(target_weekday_int=4, base_date=date(2022, 4, 1))
+        datetime.date(2022, 4, 1)
+        >>> forward_weekday_target(target_weekday_int=5, base_date=date(2022, 4, 1))
+        datetime.date(2022, 4, 2)
+    """
+    target_delta_int = target_weekday_int - base_date.weekday()  # Calculate the shift required.
+    target_delta_int += 7 if target_delta_int < 0 else 0  # If your  target is Monday and the start_time = Wednesday,
+    # target_delta_int shifts to the next future Monday (Not going backwards to a past Monday).
+    return base_date + timedelta(days=target_delta_int)  # Shifted date.
+
+
+def backward_target_weekday(target_weekday_int: int, base_date: date) -> date:
+    """Get the last instance of a date that matches the target weekday in that falls on or before the base date.
+
+    Args:
+        target_weekday_int: Target weekday we want on the date.
+            Follows datetime.datetime.weekday() index convention (0 = Monday, 1 = Tuesday, ..., 6 = Sunday).
+        base_date: Initial date to start on.
+
+    Returns:
+        New date with the correct target weekday.
+
+    Examples:
+        >>> backward_target_weekday(target_weekday_int=0, \
+        base_date=date(2022, 4, 30))
+        datetime.date(2022, 4, 25)
+        >>> backward_target_weekday(target_weekday_int=4, \
+        base_date=date(2022, 4, 30))
+        datetime.date(2022, 4, 29)
+        >>> backward_target_weekday(target_weekday_int=5, \
+        base_date=date(2022, 4, 30))
+        datetime.date(2022, 4, 30)
+    """
+    target_delta_int = target_weekday_int - base_date.weekday()  # Calculate the shift required.
+    target_delta_int -= 7 if target_delta_int > 0 else 0  # If your target is Monday and the start_time = Wednesday,
+    # target_delta_int shifts to the previous past Monday (Not going forward to the future Monday).
+    return base_date + timedelta(days=target_delta_int)  # Shifted date.
