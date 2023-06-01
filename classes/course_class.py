@@ -160,6 +160,7 @@ def course_to_extended_meetings(course_list: list[Course]) -> list[ExtendedMeeti
                 date_end=mt.date_end,
                 occurrence_unit=mt.occurrence_unit,
                 occurrence_interval=mt.occurrence_interval,
+                occurrence_limit=mt.occurrence_limit,
                 days_of_week=mt.days_of_week,
                 location="VIRTUAL" if c.is_virtual else str(mt.location),
                 name=f"{c.title} {c.class_type[:3].upper()} ({c.course_code})",

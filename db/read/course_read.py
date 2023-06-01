@@ -57,6 +57,7 @@ def get_courses_via_data_id(data_id_list: list[int]) -> list[Course]:
                         date_end=mt_r.end_date,
                         occurrence_unit=None,  # TODO: Temporary hardcode, needs to be calculated at scraper level.
                         occurrence_interval=None,  # TODO: Temporary hardcode, needs to be calculated at scraper level.
+                        occurrence_limit=None,  # TODO: Temporary hardcode, needs to be calculated at scraper level.
                         days_of_week=mt_r.days_of_week,
                         location=f"{mt_r.campus_description} {mt_r.building} {mt_r.room}",
                     )

@@ -5,7 +5,6 @@ The Meeting class is also the superclass of ExtendedMeeting.
 
 import json
 from datetime import date, time, datetime, timedelta
-from types import SimpleNamespace
 
 from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY, YEARLY, MO, TU, WE, TH, FR, SA, SU
 from pydantic import BaseModel, root_validator, validator
@@ -146,21 +145,6 @@ class Meeting(BaseModel):
 
         return json.dumps(self, default=default)
 
-    @staticmethod
-    def from_json(json_str: str):  # -> Meeting:
-        """Converts a json str to Meeting object.
-
-        Args:
-            json_str: json string of the Course object to decode from.
-
-        Returns:
-            Course from the decoded object.
-        """
-        simple = json.loads(json_str, object_hook=lambda d: SimpleNamespace(**d))
-        return Meeting(time_start=simple.time_start, time_end=simple.time_end, days_of_week=simple.days_of_week,
-                       date_start=simple.date_start, date_end=simple.date_end,
-                       occurrence_timedelta_days=simple.occurrence_timedelta_days, location=simple.location)
-
     def get_raw_str(self):
         return (f"time_start={self.time_start}\n"
                 f"time_end={self.time_end}\n"
@@ -214,7 +198,8 @@ def to_single_occurrences(mt: Meeting) -> list[Meeting]:
     start_dates = mt.all_start_dates()
     return [Meeting(time_start=mt.time_start, time_end=mt.time_end, date_start=d,
                     date_end=(d + timedelta(days=(mt.date_end - mt.date_start).days)), occurrence_unit=None,
-                    occurrence_interval=None, days_of_week=None, location=mt.location) for d in start_dates]
+                    occurrence_interval=None, occurrence_limit=None, days_of_week=None, location=mt.location)
+            for d in start_dates]
 
 
 def meetings_conflict(mt_list: list[Meeting], detailed: bool = False) -> bool | tuple[bool, None | datetime]:
@@ -247,7 +232,7 @@ def meetings_conflict(mt_list: list[Meeting], detailed: bool = False) -> bool | 
     for day in week:
         if len(day) >= 3:  # More than 3 meetings to compare.
             day.sort(key=lambda mt: (
-                mt.get_actual_date_start(),  # 1. mt.get_actual_date_start(). <low/early to high/later>.
+                mt.date_start,  # 1. mt.date_start. <low/early to high/later>.
                 mt.time_start,  # 2. mt.time_start. <low/early to high/later>.
                 mt.time_end  # 3. mt.time_end. <low/early to high/later>.
             ))  # Sorting ensures only the core required comparisons are made, reducing unneeded computation.
