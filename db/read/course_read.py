@@ -40,6 +40,8 @@ def init_database(use_mysql: bool = True, db_host: str = os.getenv("db_host"), d
 
 
 def get_courses_via_data_id(data_id_list: list[int]) -> list[Course]:
+    init_database()  # TODO: Fix this to be prod ready, for quick testing purposes only!!!
+
     course_list = []
     with Session.begin() as session:
         c_d_result = session.query(TBL_Course_Data).filter(TBL_Course_Data.course_data_id.in_(data_id_list)).all()
