@@ -277,32 +277,28 @@ def meetings_conflict(mt_list: list[Meeting], detailed: bool = False) -> bool | 
     if len(mt_list) <= 1:
         return (False, None) if detailed else False
 
-    # Initialize meeting times list.
-    week = [[], [], [], [], [], [], []]  # Each index represents a weekday.
-    # [Monday, Tuesday, ..., Sunday] <- Using weekday indexes.
+    no_occurrence_mts = []
 
-    for meeting in mt_list:
-        for i, val in enumerate(meeting.decode_days_of_week().values()):
-            if val:
-                week[i].append(meeting)
+    for mt in mt_list:
+        if mt.occurrence_unit is None:
+            no_occurrence_mts.append(mt)
+        else:
+            no_occurrence_mts += to_single_occurrences(mt)  # Convert to non-reoccurring Meetings to run 1-1 comparison.
 
-    for day in week:
-        if len(day) >= 3:  # More than 3 meetings to compare.
-            day.sort(key=lambda mt: (
-                mt.date_start,  # 1. mt.date_start. <low/early to high/later>.
-                mt.time_start,  # 2. mt.time_start. <low/early to high/later>.
-                mt.time_end  # 3. mt.time_end. <low/early to high/later>.
-            ))  # Sorting ensures only the core required comparisons are made, reducing unneeded computation.
-            for i in range(1, len(day)):
-                conflict_detailed = meeting_conflict(day[i - 1], day[i], detailed=True)
-                # Validate pairs: (1, 2, 3) -> (1 vs 2, 2 vs 3).
-                if conflict_detailed[0]:
-                    return (True, conflict_detailed[1]) if detailed else True
-        elif len(day) == 2:  # Exactly 2 meetings to compare.
-            conflict_detailed = meeting_conflict(day[0], day[1], detailed=True)
-            # Validate pair.
-            if conflict_detailed[0]:
+    if len(no_occurrence_mts) >= 3:  # More than 3 meetings to compare.
+        no_occurrence_mts.sort(key=lambda m: (m.date_start, m.time_start, m.time_end))
+        # 1. m.date_start. <low/early to high/later>.
+        # 2. m.time_start. <low/early to high/later>.
+        # 3. m.time_end. <low/early to high/later>.
+        # Sorting ensures only the core required comparisons are made, reducing unneeded computation.
+        for i in range(1, len(no_occurrence_mts)):
+            conflict_detailed = meeting_conflict(no_occurrence_mts[i - 1], no_occurrence_mts[i], detailed=True)
+            if conflict_detailed[0]:  # Validate pairs: (1, 2, 3) -> (1 vs 2, 2 vs 3).
                 return (True, conflict_detailed[1]) if detailed else True
+    elif len(no_occurrence_mts) == 2:  # Exactly 2 meetings to compare.
+        conflict_detailed = meeting_conflict(no_occurrence_mts[0], no_occurrence_mts[1], detailed=True)
+        if conflict_detailed[0]:  # Validate pair.
+            return (True, conflict_detailed[1]) if detailed else True
     return (False, None) if detailed else False
 
 
@@ -340,24 +336,16 @@ def meeting_conflict(mt_1: Meeting, mt_2: Meeting, detailed: bool = False) -> tu
             return True, mt_2.date_start
         return False, None
 
-    if mt_1.occurrence_unit is None and mt_2.verify_occurrence_unit is None:  # 1 to 1 comparison.
-        dc = date_conflict()
-        tc = time_conflict()
-        if dc[0] and tc[0]:
-            return (True, datetime.combine(dc[1], tc[1])) if detailed else True
-        else:
-            return (False, None) if detailed else False
-    else:  # Convert everything to non-reoccurring Meetings and run a comparison.
-        single_occurrence = []
-        if mt_1.occurrence_unit is None:
-            single_occurrence += to_single_occurrences(mt_1)
-        else:
-            single_occurrence.append(mt_1)
-        if mt_2.occurrence_unit is None:
-            single_occurrence += to_single_occurrences(mt_2)
-        else:
-            single_occurrence.append(mt_2)
-        return meetings_conflict(mt_list=single_occurrence, detailed=detailed)
+    if mt_1.occurrence_unit is not None or mt_2.occurrence_unit is not None:
+        raise ValueError(f"Meeting must be of occurrence_unit={None} to do 1-1 meeting conflict comparisons.")
+
+    # 1 to 1 comparison.
+    dc = date_conflict()
+    tc = time_conflict()
+    if dc[0] and tc[0]:
+        return (True, datetime.combine(dc[1], tc[1])) if detailed else True
+    else:
+        return (False, None) if detailed else False
 
 
 def forward_weekday_target(target_weekday_int: int, base_date: date) -> date:
