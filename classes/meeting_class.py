@@ -172,6 +172,7 @@ class Meeting(BaseModel):
                 f"date_end={self.date_end}\n"
                 f"occurrence_unit={self.occurrence_unit}\n"
                 f"occurrence_interval={self.occurrence_interval}\n"
+                f"occurrence_limit={self.occurrence_limit}\n"
                 f"days_of_week={self.days_of_week} -> ({self.decode_days_of_week()})\n"
                 f"location={self.location}")
 
@@ -239,7 +240,7 @@ def merged_meeting_occurrences(mt_list: list[Meeting]) -> list[Meeting]:
                                         mt.occurrence_limit, mt.location))
         for i in range(1, len(weekly_mts), 1):
             merging += merge_weekly_occurrences(mt_1=weekly_mts[i - 1], mt_2=weekly_mts[i])
-        if len(merging) == count_save:  # Loop until merges are no longer possible
+        if len(merging) == count_save:  # Loop until merges are no longer possible.
             break
         weekly_mts = merging.copy()
     return non_weekly_mts + weekly_mts
@@ -385,14 +386,11 @@ def backward_target_weekday(target_weekday_int: int, base_date: date) -> date:
         New date with the correct target weekday.
 
     Examples:
-        >>> backward_target_weekday(target_weekday_int=0, \
-        base_date=date(2022, 4, 30))
+        >>> backward_target_weekday(target_weekday_int=0, base_date=date(2022, 4, 30))
         datetime.date(2022, 4, 25)
-        >>> backward_target_weekday(target_weekday_int=4, \
-        base_date=date(2022, 4, 30))
+        >>> backward_target_weekday(target_weekday_int=4, base_date=date(2022, 4, 30))
         datetime.date(2022, 4, 29)
-        >>> backward_target_weekday(target_weekday_int=5, \
-        base_date=date(2022, 4, 30))
+        >>> backward_target_weekday(target_weekday_int=5, base_date=date(2022, 4, 30))
         datetime.date(2022, 4, 30)
     """
     target_delta_int = target_weekday_int - base_date.weekday()  # Calculate the shift required.
