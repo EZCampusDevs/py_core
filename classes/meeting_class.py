@@ -227,19 +227,22 @@ def merged_meeting_occurrences(mt_list: list[Meeting]) -> list[Meeting]:
     if not mt_list:
         return []
 
-    mts_merged = []
-    while True:
-        previous_count = len(mts_merged)
-        if len(mt_list) == 1:
+    weekly_mts = [mt for mt in mt_list if mt.occurrence_unit == constants.OU_WEEKS]
+    non_weekly_mts = [mt for mt in mt_list if mt.occurrence_unit != constants.OU_WEEKS]
+
+    merging = []
+    for _ in weekly_mts:  # while True + break would work here, but I don't trust myself, so I'm using a for.
+        if len(weekly_mts) == 1:
             break
-        mt_list.sort(key=lambda mt: (mt.occurrence_unit, mt.time_start, mt.time_end, mt.occurrence_interval,
-                                     mt.occurrence_limit, mt.location))
-        for i in range(1, len(mt_list), 1):
-            mts_merged += merge_weekly_occurrences(mt_1=mt_list[i - 1], mt_2=mt_list[i])
-        if len(mts_merged) == previous_count:  # Loop until merges are no longer possible
+        count_save = len(weekly_mts)
+        weekly_mts.sort(key=lambda mt: (mt.occurrence_unit, mt.time_start, mt.time_end, mt.occurrence_interval,
+                                        mt.occurrence_limit, mt.location))
+        for i in range(1, len(weekly_mts), 1):
+            merging += merge_weekly_occurrences(mt_1=weekly_mts[i - 1], mt_2=weekly_mts[i])
+        if len(merging) == count_save:  # Loop until merges are no longer possible
             break
-        mt_list = mts_merged.copy()
-    return mts_merged.copy()
+        weekly_mts = merging.copy()
+    return non_weekly_mts + weekly_mts
 
 
 def merge_weekly_occurrences(mt_1: Meeting, mt_2: Meeting) -> list[Meeting]:
