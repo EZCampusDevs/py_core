@@ -47,6 +47,7 @@ class CourseOptimizerCriteria(BaseModel):
         max_capacity=1, \
         max_capacity_weight=0.2)
     """
+
     # Note all the defaults for criteria is None, except for available_times
     # which defaults to an empty list.
     available_times: list[tuple[int, time, time]] = []  # Default empty list
@@ -62,11 +63,15 @@ class CourseOptimizerCriteria(BaseModel):
     max_capacity_weight: float = 0.0
 
     def total_weights(self) -> float:
-        return sum([self.available_times_weight,
-                    self.is_virtual_weight,
-                    self.high_prof_rating_weight,
-                    self.min_seats_open_weight,
-                    self.max_capacity_weight])
+        return sum(
+            [
+                self.available_times_weight,
+                self.is_virtual_weight,
+                self.high_prof_rating_weight,
+                self.min_seats_open_weight,
+                self.max_capacity_weight,
+            ]
+        )
 
     def course_eval(self, course: Course) -> float:
         """Evaluates the rating of a Course object for schedule optimizer.
@@ -84,16 +89,18 @@ class CourseOptimizerCriteria(BaseModel):
             general_multiplier += 0.25
             for sub in self.available_times:
                 for mt in course.class_time:
-                    if sub[0] in mt.decode_days_of_week().values() \
-                            and (sub[1] <= mt.time_start <= sub[2] or sub[1] <= mt.time_end <= sub[2]):
+                    if sub[0] in mt.decode_days_of_week().values() and (
+                        sub[1] <= mt.time_start <= sub[2]
+                        or sub[1] <= mt.time_end <= sub[2]
+                    ):
                         # TODO(Daniel): This is an inaccurate representation ^^^!
                         #  Use some form of linear or function based rating scaling representing what percentage of a
                         #  meeting is within/outside the rating available_times criteria.
-                        rating += (mt.num_actual_meetings() * self.available_times_weight)
+                        rating += mt.num_actual_meetings() * self.available_times_weight
         if self.is_virtual is not None and self.is_virtual_weight > 0:
             if self.is_virtual == course.is_virtual:
                 general_multiplier += 0.25
-                rating += (10 * course.num_actual_meetings() * self.is_virtual_weight)
+                rating += 10 * course.num_actual_meetings() * self.is_virtual_weight
         # Notice available_times and is_virtual ratings depend on the
         # actual meetings count. This is to help account for variations of
         # meeting counts. For example, a user wants virtual classes (Optimizer
@@ -107,14 +114,14 @@ class CourseOptimizerCriteria(BaseModel):
                 instructor_rating = sum([f.rating for f in course.instructors])
                 if instructor_rating is not None:
                     general_multiplier += 0.25
-                    rating += (instructor_rating * 100 * self.high_prof_rating_weight)
+                    rating += instructor_rating * 100 * self.high_prof_rating_weight
         if self.min_seats_open is not None and self.min_seats_open_weight > 0:
             if self.min_seats_open <= (course.max_capacity - course.seats_filled):
                 general_multiplier += 0.25
-                rating += (100 * self.min_seats_open_weight)
+                rating += 100 * self.min_seats_open_weight
         if self.max_capacity is not None and self.max_capacity_weight > 0:
             if self.max_capacity >= course.max_capacity:
                 general_multiplier += 0.25
-                rating += (100 * self.max_capacity_weight)
+                rating += 100 * self.max_capacity_weight
         rating *= general_multiplier
         return rating

@@ -14,6 +14,7 @@ load_dotenv()
 
 class SemesterConfig(BaseModel):
     """Semester Config class, offers a standardized single object to represent all configs."""
+
     school_short_name: str  # Example: OTU.
     name: str  # Example: OTU Undergrad Fall 2022.
     description: str = ""
@@ -33,8 +34,10 @@ class SemesterConfig(BaseModel):
         return f"{os.getenv('SQL_CONFIG_COURSE_TABLE_PREFIX')}{self.name.lower().replace(' ', '_')}"
 
     def meetings_table(self):
-        return (f"{os.getenv('SQL_CONFIG_COURSE_TABLE_PREFIX')}{self.name.lower().replace(' ', '_')}"
-                f"{os.getenv('SQL_COURSE_MEETING_TABLE_SUFFIX')}")
+        return (
+            f"{os.getenv('SQL_CONFIG_COURSE_TABLE_PREFIX')}{self.name.lower().replace(' ', '_')}"
+            f"{os.getenv('SQL_COURSE_MEETING_TABLE_SUFFIX')}"
+        )
 
     def to_json(self) -> str:
         """Converts a SemesterConfig object to json str.
@@ -44,7 +47,11 @@ class SemesterConfig(BaseModel):
         """
 
         def default(obj):
-            if isinstance(obj, date) or isinstance(obj, time) or isinstance(obj, datetime):
+            if (
+                isinstance(obj, date)
+                or isinstance(obj, time)
+                or isinstance(obj, datetime)
+            ):
                 return obj.isoformat()
             if isinstance(obj, int):
                 return obj
@@ -69,7 +76,9 @@ class SemesterConfig(BaseModel):
             semester_start=datetime.fromisoformat(simple.semester_start),
             semester_end=datetime.fromisoformat(simple.semester_end),
             course_api_ref=simple.course_api_ref,
-            course_api_params=vars(simple.course_api_params)  # vars() converts SimpleNamespace to dict.
+            course_api_params=vars(
+                simple.course_api_params
+            ),  # vars() converts SimpleNamespace to dict.
         )
 
 

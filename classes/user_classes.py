@@ -17,45 +17,55 @@ import bcrypt
 from fastapi import HTTPException, status
 from pydantic import BaseModel, validator, root_validator
 
-from ..constants import USERNAME_MIN_LEN, USERNAME_MAX_LEN, EMAIL_MIN_LEN, EMAIL_MAX_LEN, PASS_MIN_LEN, PASS_MAX_LEN, \
-    NAME_MIN_LEN, NAME_MAX_LEN, DESC_MAX_LEN, PROGRAM_MAX_LEN, YEAR_OF_STUDY_MIN, YEAR_OF_STUDY_MAX
+from ..constants import (
+    USERNAME_MIN_LEN,
+    USERNAME_MAX_LEN,
+    EMAIL_MIN_LEN,
+    EMAIL_MAX_LEN,
+    PASS_MIN_LEN,
+    PASS_MAX_LEN,
+    NAME_MIN_LEN,
+    NAME_MAX_LEN,
+    DESC_MAX_LEN,
+    PROGRAM_MAX_LEN,
+    YEAR_OF_STUDY_MIN,
+    YEAR_OF_STUDY_MAX,
+)
 
 API_406_USERNAME_INVALID = HTTPException(
     status_code=status.HTTP_406_NOT_ACCEPTABLE,
     detail=f"Usernames must be [{USERNAME_MIN_LEN} to {USERNAME_MAX_LEN}] characters and can only contain lowercase "
-           f"alphanumerics, '.' and '_'."
+    f"alphanumerics, '.' and '_'.",
 )
 API_406_EMAIL_INVALID = HTTPException(
-    status_code=status.HTTP_406_NOT_ACCEPTABLE,
-    detail="Email must be a valid format."
+    status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Email must be a valid format."
 )
 API_406_PASSWORD_INVALID = HTTPException(
     status_code=status.HTTP_406_NOT_ACCEPTABLE,
-    detail=f"Passwords must be [{PASS_MIN_LEN} to {NAME_MAX_LEN}] characters."
+    detail=f"Passwords must be [{PASS_MIN_LEN} to {NAME_MAX_LEN}] characters.",
 )
 API_406_USERNAME_PASSWORD_MATCH = HTTPException(
     status_code=status.HTTP_406_NOT_ACCEPTABLE,
-    detail="Seriously? Using your username as your password? No."
+    detail="Seriously? Using your username as your password? No.",
 )
 API_406_NAME_INVALID = HTTPException(
     status_code=status.HTTP_406_NOT_ACCEPTABLE,
-    detail=f"Names must be [{NAME_MIN_LEN} to {NAME_MAX_LEN}] characters."
+    detail=f"Names must be [{NAME_MIN_LEN} to {NAME_MAX_LEN}] characters.",
 )
 API_406_DESCRIPTION_INVALID = HTTPException(
     status_code=status.HTTP_406_NOT_ACCEPTABLE,
-    detail=f"Descriptions must be less than ({DESC_MAX_LEN}) characters."
+    detail=f"Descriptions must be less than ({DESC_MAX_LEN}) characters.",
 )
 API_406_PROGRAM_INVALID = HTTPException(
     status_code=status.HTTP_406_NOT_ACCEPTABLE,
-    detail=f"Programs must be less than ({PROGRAM_MAX_LEN}) characters."
+    detail=f"Programs must be less than ({PROGRAM_MAX_LEN}) characters.",
 )
 API_406_YEAR_OF_STUDY_INVALID = HTTPException(
     status_code=status.HTTP_406_NOT_ACCEPTABLE,
-    detail=f"Year of study must be [{YEAR_OF_STUDY_MIN} to {YEAR_OF_STUDY_MAX}]."
+    detail=f"Year of study must be [{YEAR_OF_STUDY_MIN} to {YEAR_OF_STUDY_MAX}].",
 )
 HTTP_409_BAD_ACCOUNT_STATUS = HTTPException(
-    status_code=status.HTTP_409_CONFLICT,
-    detail="Broken account status."
+    status_code=status.HTTP_409_CONFLICT, detail="Broken account status."
 )
 
 
@@ -69,7 +79,11 @@ def valid_username(username: str) -> bool:
     Returns:
         True for valid, False for invalid.
     """
-    if not isinstance(username, str) or len(username) < USERNAME_MIN_LEN or len(username) > USERNAME_MAX_LEN:
+    if (
+        not isinstance(username, str)
+        or len(username) < USERNAME_MIN_LEN
+        or len(username) > USERNAME_MAX_LEN
+    ):
         return False
     return re.compile(r"^[a-z0-9_.]+$").match(username) is not None
 
@@ -86,7 +100,11 @@ def valid_email(email: str) -> bool:
     Returns:
         Boolean defining a True = valid email, False = invalid email.
     """
-    if not isinstance(email, str) or len(email) > EMAIL_MAX_LEN or len(email) < EMAIL_MIN_LEN:
+    if (
+        not isinstance(email, str)
+        or len(email) > EMAIL_MAX_LEN
+        or len(email) < EMAIL_MIN_LEN
+    ):
         return False
     """
     Regular Expression validate email strings:
@@ -99,14 +117,18 @@ def valid_email(email: str) -> bool:
 
     username@domain.dns
     """
-    validate_email = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
+    validate_email = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"
     if not re.fullmatch(validate_email, email):
         return False
     return True
 
 
 def valid_password(password: str) -> bool:
-    if not isinstance(password, str) or len(password) > PASS_MAX_LEN or len(password) < PASS_MIN_LEN:
+    if (
+        not isinstance(password, str)
+        or len(password) > PASS_MAX_LEN
+        or len(password) < PASS_MIN_LEN
+    ):
         return False
     return True
 
@@ -121,13 +143,16 @@ def hash_password(password: str) -> str:
     if isinstance(password, str):
         password.encode()  # Taken from the bcrypt docs (Work around for 72 char limit)
     return bcrypt.hashpw(
-        base64.b64encode(hashlib.sha256(password.encode()).digest()),
-        bcrypt.gensalt(12)
+        base64.b64encode(hashlib.sha256(password.encode()).digest()), bcrypt.gensalt(12)
     ).decode()
 
 
 def valid_name(name: str) -> bool:
-    if not isinstance(name, str) or len(name) < NAME_MIN_LEN or len(name) > NAME_MAX_LEN:
+    if (
+        not isinstance(name, str)
+        or len(name) < NAME_MIN_LEN
+        or len(name) > NAME_MAX_LEN
+    ):
         return False
     return True
 
@@ -148,7 +173,11 @@ def valid_program(program: str) -> bool:
 
 
 def valid_year_of_study(year_of_study: str) -> bool:
-    if not isinstance(year_of_study, int) or year_of_study < YEAR_OF_STUDY_MIN or year_of_study > YEAR_OF_STUDY_MAX:
+    if (
+        not isinstance(year_of_study, int)
+        or year_of_study < YEAR_OF_STUDY_MIN
+        or year_of_study > YEAR_OF_STUDY_MAX
+    ):
         return False
     return True
 
@@ -202,10 +231,13 @@ class CreateUser(BaseModel):
         )
         CreateUser(username='minimum_test_case', email='email@domain.com', password='$HASHED_PASSWORD_HERE$', name='test_username', description='', school_short_name=None, program=None, year_of_study=None, private_account=True, is_verified=0, account_status=0, schedule_tag='UUID4_STR_HERE')
     """
+
     username: str
     email: str
     password: str
-    name: Optional[str]  # If name is not entered it is defaulted later by pydantic name validator.
+    name: Optional[
+        str
+    ]  # If name is not entered it is defaulted later by pydantic name validator.
     description: Optional[str]
     school_short_name: Optional[str]
     program: Optional[str]
@@ -244,7 +276,9 @@ class CreateUser(BaseModel):
     @validator("name", always=True)  # https://stackoverflow.com/a/71001357
     def validate_name(cls, v, values):
         if not isinstance(v, str):
-            return v or values["username"]  # Default name to match username if name is unspecified.
+            return (
+                v or values["username"]
+            )  # Default name to match username if name is unspecified.
         elif isinstance(v, str) and not valid_name(v):
             raise API_406_NAME_INVALID
         return v
@@ -276,6 +310,7 @@ class CreateUser(BaseModel):
 
 class EditUser(BaseModel):
     """Model used for editing user values."""
+
     username: str
     email: str
     password: str
@@ -342,6 +377,7 @@ class EditUser(BaseModel):
 
 class BasicUser(BaseModel):
     """Model used for internal logic."""
+
     username: str
     email: str
     hashed_password: str

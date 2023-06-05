@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 class School(BaseModel):
     """School class, offers a standardized single object to represent all educational institutions."""
+
     short_name: str  # Must be unique against all other schools.
     full_name: str
     description: str = ""
@@ -106,7 +107,7 @@ class School(BaseModel):
             alias=simple.alias,
             region=simple.region,
             course_code_syntax=simple.course_code_syntax,
-            ratemyprof_api_id=simple.ratemyprof_api_id
+            ratemyprof_api_id=simple.ratemyprof_api_id,
         )
 
 

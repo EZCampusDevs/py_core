@@ -23,6 +23,7 @@ class ExtendedMeeting(Meeting):
         max_capacity >= seats_filled.
     is_virtual: Defines if the class is completely virtual/online.
     """
+
     name: str
     description: str
     seats_filled: int

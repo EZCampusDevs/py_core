@@ -18,6 +18,7 @@ class Instructor(BaseModel):
         >>> Instructor(faculty_id=1)
         Instructor(faculty_id=1, name=None, email=None, rating=None)
     """
+
     faculty_id: int
     name: Optional[str]
     email: Optional[str]

@@ -6,7 +6,20 @@ The Meeting class is also the superclass of ExtendedMeeting.
 import json
 from datetime import date, time, datetime, timedelta
 
-from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY, YEARLY, MO, TU, WE, TH, FR, SA, SU
+from dateutil.rrule import (
+    rrule,
+    DAILY,
+    WEEKLY,
+    MONTHLY,
+    YEARLY,
+    MO,
+    TU,
+    WE,
+    TH,
+    FR,
+    SA,
+    SU,
+)
 from pydantic import BaseModel, root_validator, validator
 
 from .. import constants
@@ -15,13 +28,20 @@ from .. import general
 
 class Meeting(BaseModel):
     """Meeting class defines an instance of when a course meeting occurs."""
+
     time_start: time = time.min  # Meeting start time.
-    time_end: time = time.max  # Meeting end time, In the event times are not specified, assume all day Meeting.
+    time_end: time = (
+        time.max
+    )  # Meeting end time, In the event times are not specified, assume all day Meeting.
     date_start: date  # Meeting start date window.
     date_end: date  # Meeting end date window.
     occurrence_unit: None | str = None
-    occurrence_interval: None | int = None  # If occurrence_unit is None, occurrence_interval must be None.
-    occurrence_limit: date | int | None = None  # If occurrence_unit is None, occurrence_limit must be None.
+    occurrence_interval: None | int = (
+        None  # If occurrence_unit is None, occurrence_interval must be None.
+    )
+    occurrence_limit: date | int | None = (
+        None  # If occurrence_unit is None, occurrence_limit must be None.
+    )
     days_of_week: int = None  # Weekdays as 1 int value.
     # NOTE: Functionally speaking, days_of_week really only affects Meetings with the occurrence unit of weeks.
     # This is corrected to None by a root_validator if days_of_week is specified but not needed.
@@ -46,7 +66,9 @@ class Meeting(BaseModel):
     @validator("occurrence_unit")
     def verify_occurrence_unit(cls, v):
         if v not in constants.OU_ALLOWED:
-            raise ValueError(f"occurrence_unit={v} is not allowed. Allowed units: {constants.OU_ALLOWED}")
+            raise ValueError(
+                f"occurrence_unit={v} is not allowed. Allowed units: {constants.OU_ALLOWED}"
+            )
         return v
 
     @root_validator()
@@ -59,12 +81,21 @@ class Meeting(BaseModel):
         date_end = values.get("date_end")
         days_of_week = values.get("days_of_week")
 
-        if (occurrence_unit is None and (date_end - date_start) >= timedelta(days=7) and isinstance(days_of_week, int)
-                and days_of_week != 0):
+        if (
+            occurrence_unit is None
+            and (date_end - date_start) >= timedelta(days=7)
+            and isinstance(days_of_week, int)
+            and days_of_week != 0
+        ):
             values["occurrence_unit"] = constants.OU_WEEKS
             values["occurrence_interval"] = 1
             values["occurrence_limit"] = date_end
-            new_date = min([forward_weekday_target(n, date_start) for n in general.decode_weekday_ints(days_of_week)])
+            new_date = min(
+                [
+                    forward_weekday_target(n, date_start)
+                    for n in general.decode_weekday_ints(days_of_week)
+                ]
+            )
             values["date_start"] = new_date
             values["date_end"] = new_date
         return values
@@ -74,9 +105,13 @@ class Meeting(BaseModel):
         occurrence_unit = values.get("occurrence_unit")
         occurrence_interval = values.get("occurrence_interval")
         if occurrence_unit is not None and occurrence_interval < 1:
-            raise ValueError(f"occurrence_unit={occurrence_unit}, expected occurrence_interval >= 1")
+            raise ValueError(
+                f"occurrence_unit={occurrence_unit}, expected occurrence_interval >= 1"
+            )
         elif occurrence_unit is None and occurrence_interval is not None:
-            raise ValueError(f"occurrence_unit={None}, expected occurrence_interval={None}")
+            raise ValueError(
+                f"occurrence_unit={None}, expected occurrence_interval={None}"
+            )
         return values
 
     @root_validator()
@@ -84,9 +119,13 @@ class Meeting(BaseModel):
         occurrence_unit = values.get("occurrence_unit")
         occurrence_limit = values.get("occurrence_limit")
         if occurrence_unit is not None and occurrence_limit is None:
-            raise ValueError(f"occurrence_unit={occurrence_unit}, expected occurrence_interval != {None}")
+            raise ValueError(
+                f"occurrence_unit={occurrence_unit}, expected occurrence_interval != {None}"
+            )
         elif occurrence_unit is None and occurrence_limit is not None:
-            raise ValueError(f"occurrence_unit={None}, expected occurrence_interval = {None}")
+            raise ValueError(
+                f"occurrence_unit={None}, expected occurrence_interval = {None}"
+            )
         return values
 
     @root_validator()
@@ -117,20 +156,55 @@ class Meeting(BaseModel):
 
     def get_rrule(self) -> rrule | None:
         if self.occurrence_unit == constants.OU_DAYS:
-            return rrule(DAILY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval)
+            return rrule(
+                DAILY,
+                dtstart=self.date_start,
+                until=self.date_end,
+                interval=self.occurrence_interval,
+            )
         elif self.occurrence_unit == constants.OU_WEEKS:
             by_weekday = [MO, TU, WE, TH, FR, SA, SU]
-            return rrule(WEEKLY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval,
-                         byweekday=[by_weekday[w_i] for w_i in self.decode_weekday_ints()])
+            return rrule(
+                WEEKLY,
+                dtstart=self.date_start,
+                until=self.date_end,
+                interval=self.occurrence_interval,
+                byweekday=[by_weekday[w_i] for w_i in self.decode_weekday_ints()],
+            )
         elif self.occurrence_unit == constants.OU_MONTHS_WD:
-            ordinal = (self.date_start.day - 1) // 7 + 1  # Determine with nth date_start.weekday() that date_start is.
-            by_weekday = [MO(ordinal), TU(ordinal), WE(ordinal), TH(ordinal), FR(ordinal), SA(ordinal), SU(ordinal)]
-            return rrule(MONTHLY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval,
-                         byweekday=by_weekday[self.date_start.weekday()])
+            ordinal = (
+                self.date_start.day - 1
+            ) // 7 + 1  # Determine with nth date_start.weekday() that date_start is.
+            by_weekday = [
+                MO(ordinal),
+                TU(ordinal),
+                WE(ordinal),
+                TH(ordinal),
+                FR(ordinal),
+                SA(ordinal),
+                SU(ordinal),
+            ]
+            return rrule(
+                MONTHLY,
+                dtstart=self.date_start,
+                until=self.date_end,
+                interval=self.occurrence_interval,
+                byweekday=by_weekday[self.date_start.weekday()],
+            )
         elif self.occurrence_unit == constants.OU_MONTHS_N:
-            return rrule(MONTHLY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval)
+            return rrule(
+                MONTHLY,
+                dtstart=self.date_start,
+                until=self.date_end,
+                interval=self.occurrence_interval,
+            )
         elif self.occurrence_unit == constants.OU_YEARS:
-            return rrule(YEARLY, dtstart=self.date_start, until=self.date_end, interval=self.occurrence_interval)
+            return rrule(
+                YEARLY,
+                dtstart=self.date_start,
+                until=self.date_end,
+                interval=self.occurrence_interval,
+            )
         else:  # self.occurrence_unit is None:
             return None
 
@@ -166,15 +240,17 @@ class Meeting(BaseModel):
         return json.dumps(self, default=default)
 
     def get_raw_str(self):
-        return (f"time_start={self.time_start}\n"
-                f"time_end={self.time_end}\n"
-                f"date_start={self.date_start}\n"
-                f"date_end={self.date_end}\n"
-                f"occurrence_unit={self.occurrence_unit}\n"
-                f"occurrence_interval={self.occurrence_interval}\n"
-                f"occurrence_limit={self.occurrence_limit}\n"
-                f"days_of_week={self.days_of_week} -> ({self.decode_days_of_week()})\n"
-                f"location={self.location}")
+        return (
+            f"time_start={self.time_start}\n"
+            f"time_end={self.time_end}\n"
+            f"date_start={self.date_start}\n"
+            f"date_end={self.date_end}\n"
+            f"occurrence_unit={self.occurrence_unit}\n"
+            f"occurrence_interval={self.occurrence_interval}\n"
+            f"occurrence_limit={self.occurrence_limit}\n"
+            f"days_of_week={self.days_of_week} -> ({self.decode_days_of_week()})\n"
+            f"location={self.location}"
+        )
 
     def __str__(self):
         return self.get_raw_str()
@@ -202,12 +278,17 @@ def round_to_hour(dt_obj: time | datetime) -> time | datetime:
         datetime.time(0, 0)
     """
     if isinstance(dt_obj, time):
-        dt_obj = datetime.combine(date.min, dt_obj)  # Convert datetime.time() to datetime.datetime().
-        return (dt_obj.replace(hour=dt_obj.hour, minute=0, second=0, microsecond=0)
-                + timedelta(hours=dt_obj.minute // 30)).time()
+        dt_obj = datetime.combine(
+            date.min, dt_obj
+        )  # Convert datetime.time() to datetime.datetime().
+        return (
+            dt_obj.replace(hour=dt_obj.hour, minute=0, second=0, microsecond=0)
+            + timedelta(hours=dt_obj.minute // 30)
+        ).time()
     elif isinstance(dt_obj, datetime):
-        return (dt_obj.replace(hour=dt_obj.hour, minute=0, second=0, microsecond=0)
-                + timedelta(hours=dt_obj.minute // 30))
+        return dt_obj.replace(
+            hour=dt_obj.hour, minute=0, second=0, microsecond=0
+        ) + timedelta(hours=dt_obj.minute // 30)
     else:
         raise TypeError("Expected datetime.time() or datetime.datetime().")
 
@@ -217,10 +298,20 @@ def to_single_occurrences(mt: Meeting) -> list[Meeting]:
     if mt.occurrence_unit is None:
         return [mt]
     start_dates = mt.all_start_dates()
-    return [Meeting(time_start=mt.time_start, time_end=mt.time_end, date_start=d,
-                    date_end=(d + timedelta(days=(mt.date_end - mt.date_start).days)), occurrence_unit=None,
-                    occurrence_interval=None, occurrence_limit=None, days_of_week=None, location=mt.location)
-            for d in start_dates]
+    return [
+        Meeting(
+            time_start=mt.time_start,
+            time_end=mt.time_end,
+            date_start=d,
+            date_end=(d + timedelta(days=(mt.date_end - mt.date_start).days)),
+            occurrence_unit=None,
+            occurrence_interval=None,
+            occurrence_limit=None,
+            days_of_week=None,
+            location=mt.location,
+        )
+        for d in start_dates
+    ]
 
 
 def merged_meeting_occurrences(mt_list: list[Meeting]) -> list[Meeting]:
@@ -232,14 +323,28 @@ def merged_meeting_occurrences(mt_list: list[Meeting]) -> list[Meeting]:
     non_weekly_mts = [mt for mt in mt_list if mt.occurrence_unit != constants.OU_WEEKS]
 
     merging = []
-    for _ in weekly_mts:  # while True + break would work here, but I don't trust myself, so I'm using a for.
+    for (
+        _
+    ) in (
+        weekly_mts
+    ):  # while True + break would work here, but I don't trust myself, so I'm using a for.
         if len(weekly_mts) == 1:
             break
         count_save = len(weekly_mts)
-        weekly_mts.sort(key=lambda mt: (mt.occurrence_unit, mt.time_start, mt.time_end, mt.occurrence_interval,
-                                        mt.occurrence_limit, mt.location))
+        weekly_mts.sort(
+            key=lambda mt: (
+                mt.occurrence_unit,
+                mt.time_start,
+                mt.time_end,
+                mt.occurrence_interval,
+                mt.occurrence_limit,
+                mt.location,
+            )
+        )
         for i in range(1, len(weekly_mts), 1):
-            merging += merge_weekly_occurrences(mt_1=weekly_mts[i - 1], mt_2=weekly_mts[i])
+            merging += merge_weekly_occurrences(
+                mt_1=weekly_mts[i - 1], mt_2=weekly_mts[i]
+            )
         if len(merging) == count_save:  # Loop until merges are no longer possible.
             break
         weekly_mts = merging.copy()
@@ -248,19 +353,34 @@ def merged_meeting_occurrences(mt_list: list[Meeting]) -> list[Meeting]:
 
 def merge_weekly_occurrences(mt_1: Meeting, mt_2: Meeting) -> list[Meeting]:
     if mt_1.occurrence_unit == mt_2.occurrence_unit == constants.OU_WEEKS and (
-            mt_1.time_start == mt_2.time_start and mt_1.time_end == mt_2.time_end
-            and mt_1.occurrence_interval == mt_2.occurrence_interval and mt_1.occurrence_limit == mt_2.occurrence_limit
-            and mt_1.location == mt_2.location):
-        weekday_ints = list(set(mt_1.decode_weekday_ints() + mt_2.decode_weekday_ints()))
-        return [Meeting(time_start=mt_1.time_start, time_end=mt_1.time_end,
-                        date_start=min([mt_1.date_start, mt_2.date_start]),
-                        date_end=min([mt_1.date_end, mt_2.date_end]), occurrence_unit=mt_1.occurrence_unit,
-                        occurrence_interval=mt_1.occurrence_interval, occurrence_limit=mt_1.occurrence_limit,
-                        days_of_week=general.encode_weekday_ints(weekday_ints), location=mt_1.location)]
+        mt_1.time_start == mt_2.time_start
+        and mt_1.time_end == mt_2.time_end
+        and mt_1.occurrence_interval == mt_2.occurrence_interval
+        and mt_1.occurrence_limit == mt_2.occurrence_limit
+        and mt_1.location == mt_2.location
+    ):
+        weekday_ints = list(
+            set(mt_1.decode_weekday_ints() + mt_2.decode_weekday_ints())
+        )
+        return [
+            Meeting(
+                time_start=mt_1.time_start,
+                time_end=mt_1.time_end,
+                date_start=min([mt_1.date_start, mt_2.date_start]),
+                date_end=min([mt_1.date_end, mt_2.date_end]),
+                occurrence_unit=mt_1.occurrence_unit,
+                occurrence_interval=mt_1.occurrence_interval,
+                occurrence_limit=mt_1.occurrence_limit,
+                days_of_week=general.encode_weekday_ints(weekday_ints),
+                location=mt_1.location,
+            )
+        ]
     return [mt_1, mt_2]
 
 
-def meetings_conflict(mt_list: list[Meeting], detailed: bool = False) -> bool | tuple[bool, None | datetime]:
+def meetings_conflict(
+    mt_list: list[Meeting], detailed: bool = False
+) -> bool | tuple[bool, None | datetime]:
     """Determines if a list of Meeting objects (schedule) is has time conflicts.
 
     Args:
@@ -284,7 +404,9 @@ def meetings_conflict(mt_list: list[Meeting], detailed: bool = False) -> bool | 
         if mt.occurrence_unit is None:
             no_occurrence_mts.append(mt)
         else:
-            no_occurrence_mts += to_single_occurrences(mt)  # Convert to non-reoccurring Meetings to run 1-1 comparison.
+            no_occurrence_mts += to_single_occurrences(
+                mt
+            )  # Convert to non-reoccurring Meetings to run 1-1 comparison.
 
     if len(no_occurrence_mts) >= 3:  # More than 3 meetings to compare.
         no_occurrence_mts.sort(key=lambda m: (m.date_start, m.time_start, m.time_end))
@@ -293,17 +415,23 @@ def meetings_conflict(mt_list: list[Meeting], detailed: bool = False) -> bool | 
         # 3. m.time_end. <low/early to high/later>.
         # Sorting ensures only the core required comparisons are made, reducing unneeded computation.
         for i in range(1, len(no_occurrence_mts)):
-            conflict_detailed = meeting_conflict(no_occurrence_mts[i - 1], no_occurrence_mts[i], detailed=True)
+            conflict_detailed = meeting_conflict(
+                no_occurrence_mts[i - 1], no_occurrence_mts[i], detailed=True
+            )
             if conflict_detailed[0]:  # Validate pairs: (1, 2, 3) -> (1 vs 2, 2 vs 3).
                 return (True, conflict_detailed[1]) if detailed else True
     elif len(no_occurrence_mts) == 2:  # Exactly 2 meetings to compare.
-        conflict_detailed = meeting_conflict(no_occurrence_mts[0], no_occurrence_mts[1], detailed=True)
+        conflict_detailed = meeting_conflict(
+            no_occurrence_mts[0], no_occurrence_mts[1], detailed=True
+        )
         if conflict_detailed[0]:  # Validate pair.
             return (True, conflict_detailed[1]) if detailed else True
     return (False, None) if detailed else False
 
 
-def meeting_conflict(mt_1: Meeting, mt_2: Meeting, detailed: bool = False) -> tuple[bool, datetime] | bool:
+def meeting_conflict(
+    mt_1: Meeting, mt_2: Meeting, detailed: bool = False
+) -> tuple[bool, datetime] | bool:
     """Determine and identify 2 Meeting objects conflicting on date and/or time.
 
     Args:
@@ -338,7 +466,9 @@ def meeting_conflict(mt_1: Meeting, mt_2: Meeting, detailed: bool = False) -> tu
         return False, None
 
     if mt_1.occurrence_unit is not None or mt_2.occurrence_unit is not None:
-        raise ValueError(f"Meeting must be of occurrence_unit={None} to do 1-1 meeting conflict comparisons.")
+        raise ValueError(
+            f"Meeting must be of occurrence_unit={None} to do 1-1 meeting conflict comparisons."
+        )
 
     # 1 to 1 comparison.
     dc = date_conflict()
@@ -368,8 +498,12 @@ def forward_weekday_target(target_weekday_int: int, base_date: date) -> date:
         >>> forward_weekday_target(target_weekday_int=5, base_date=date(2022, 4, 1))
         datetime.date(2022, 4, 2)
     """
-    target_delta_int = target_weekday_int - base_date.weekday()  # Calculate the shift required.
-    target_delta_int += 7 if target_delta_int < 0 else 0  # If your  target is Monday and the start_time = Wednesday,
+    target_delta_int = (
+        target_weekday_int - base_date.weekday()
+    )  # Calculate the shift required.
+    target_delta_int += (
+        7 if target_delta_int < 0 else 0
+    )  # If your  target is Monday and the start_time = Wednesday,
     # target_delta_int shifts to the next future Monday (Not going backwards to a past Monday).
     return base_date + timedelta(days=target_delta_int)  # Shifted date.
 
@@ -393,7 +527,11 @@ def backward_target_weekday(target_weekday_int: int, base_date: date) -> date:
         >>> backward_target_weekday(target_weekday_int=5, base_date=date(2022, 4, 30))
         datetime.date(2022, 4, 30)
     """
-    target_delta_int = target_weekday_int - base_date.weekday()  # Calculate the shift required.
-    target_delta_int -= 7 if target_delta_int > 0 else 0  # If your target is Monday and the start_time = Wednesday,
+    target_delta_int = (
+        target_weekday_int - base_date.weekday()
+    )  # Calculate the shift required.
+    target_delta_int -= (
+        7 if target_delta_int > 0 else 0
+    )  # If your target is Monday and the start_time = Wednesday,
     # target_delta_int shifts to the previous past Monday (Not going forward to the future Monday).
     return base_date + timedelta(days=target_delta_int)  # Shifted date.

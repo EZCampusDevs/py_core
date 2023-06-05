@@ -14,6 +14,7 @@ from .meeting_class import Meeting, meetings_conflict, merged_meeting_occurrence
 
 class Course(BaseModel):
     """Course class defines a single general course identified by a CRN."""
+
     course_code: str  # Aka course code, example: "BIOL1020U".
     subject: Optional[str]  # Aka subject, example: "BIOL".
     subject_long: Optional[str]  # Aka subject long, example: "Biology".
@@ -26,13 +27,19 @@ class Course(BaseModel):
     link_tag: Optional[str]  # Aka link identifier, example: "A1".
     seats_filled: int  # Aka enrollment.
     max_capacity: int  # Aka maximum enrollment.
-    seats_available: Optional[int]  # Defaults if not provided. Aka enrollment seats available.
+    seats_available: Optional[
+        int
+    ]  # Defaults if not provided. Aka enrollment seats available.
     is_virtual: bool
     restrictions: Optional[dict]  # JSON data for class registration restrictions.
     instructional_method: Optional[str]  # Non-essential (api forwarded) data.
     is_open: Optional[bool]  # Non-essential (api forwarded) data.
-    wait_filled: Optional[int]  # Aka wait-list count. Non-essential (api forwarded) data.
-    wait_capacity: Optional[int]  # Aka wait-list capacity. Non-essential (api forwarded) data.
+    wait_filled: Optional[
+        int
+    ]  # Aka wait-list count. Non-essential (api forwarded) data.
+    wait_capacity: Optional[
+        int
+    ]  # Aka wait-list capacity. Non-essential (api forwarded) data.
     instructors: List[Instructor] = []  # Aka list of Instructor.
 
     @validator("seats_available", always=True)
@@ -67,16 +74,23 @@ class Course(BaseModel):
         return sum([mt.num_of_occurrences() for mt in self.class_time])
 
     def faculty_instructors_text(self) -> str:
-        return ", ".join(
-            [" ".join(
+        return (
+            ", ".join(
                 [
-                    i.name,  # We always assume the instructor has name filled, else use the code below.
-                    # i.name if isinstance(i.name, str) else '',
-                    f"({i.email})" if isinstance(i.email, str) else '',
-                    f"{f'{i.rating}/100' if isinstance(i.rating, int) else ''}"
+                    " ".join(
+                        [
+                            i.name,  # We always assume the instructor has name filled, else use the code below.
+                            # i.name if isinstance(i.name, str) else '',
+                            f"({i.email})" if isinstance(i.email, str) else "",
+                            f"{f'{i.rating}/100' if isinstance(i.rating, int) else ''}",
+                        ]
+                    )
+                    for i in self.instructors
                 ]
-            ) for i in self.instructors]
-        ) if self.instructors else "N/A"
+            )
+            if self.instructors
+            else "N/A"
+        )
 
 
 def schedule_time_conflicts(course_list: list[Course]) -> bool:
@@ -97,14 +111,28 @@ def schedule_time_conflicts(course_list: list[Course]) -> bool:
 
 
 def merge_course_meeting_occurrences(course: Course) -> Course:
-    return Course(course_code=course.course_code, subject=course.subject, subject_long=course.subject_long,
-                  crn=course.crn, class_type=course.class_type, title=course.title, section=course.section,
-                  class_time=merged_meeting_occurrences(course.class_time), is_linked=course.is_linked,
-                  link_tag=course.link_tag, seats_filled=course.seats_filled, max_capacity=course.max_capacity,
-                  seats_available=course.seats_available, is_virtual=course.is_virtual,
-                  restrictions=course.restrictions, instructional_method=course.instructional_method,
-                  is_open=course.is_open, wait_filled=course.wait_filled, wait_capacity=course.wait_capacity,
-                  instructors=course.instructors)
+    return Course(
+        course_code=course.course_code,
+        subject=course.subject,
+        subject_long=course.subject_long,
+        crn=course.crn,
+        class_type=course.class_type,
+        title=course.title,
+        section=course.section,
+        class_time=merged_meeting_occurrences(course.class_time),
+        is_linked=course.is_linked,
+        link_tag=course.link_tag,
+        seats_filled=course.seats_filled,
+        max_capacity=course.max_capacity,
+        seats_available=course.seats_available,
+        is_virtual=course.is_virtual,
+        restrictions=course.restrictions,
+        instructional_method=course.instructional_method,
+        is_open=course.is_open,
+        wait_filled=course.wait_filled,
+        wait_capacity=course.wait_capacity,
+        instructors=course.instructors,
+    )
 
 
 def get_min_students_of_courses(courses: list[Course]) -> int:
@@ -186,7 +214,8 @@ def course_to_extended_meetings(course_list: list[Course]) -> list[ExtendedMeeti
                 ),
                 seats_filled=c.seats_filled,
                 max_capacity=c.max_capacity,
-                is_virtual=c.is_virtual
-            ) for mt in c.class_time
+                is_virtual=c.is_virtual,
+            )
+            for mt in c.class_time
         ]
     return ex_mt_list

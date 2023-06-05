@@ -77,7 +77,10 @@ def calendars_to_simplified_json(calendar_list: list[CalendarLogical]) -> list[d
             "description": f"{calendar.description}",
             "is_public": calendar.is_public,
             "category": f"{calendar.category}",
-            "meetings": [extended_meeting_to_simplified_json(ex_mt) for ex_mt in calendar.meetings]
+            "meetings": [
+                extended_meeting_to_simplified_json(ex_mt)
+                for ex_mt in calendar.meetings
+            ],
         }
         calendar_json_list.append(new_event)
     return calendar_json_list
