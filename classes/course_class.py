@@ -1,6 +1,7 @@
 """Course class module.
 
-The Course class and by extension the module's functions represent universal course structures and data values.
+The Course class and by extension the module's functions represent universal course structures and
+data values.
 """
 
 from typing import Optional, List
@@ -62,7 +63,7 @@ class Course(BaseModel):
         return f"{self.course_code} {self.class_type}"
 
     def num_actual_meetings(self) -> int:
-        """Get the total number of times a course meeting actually occurs (sum of meeting's reoccurrence).
+        """Get the total number of times a course meeting actually occurs.
 
         Returns:
             Total number of times a course's class meets.
@@ -79,7 +80,8 @@ class Course(BaseModel):
                 [
                     " ".join(
                         [
-                            i.name,  # We always assume the instructor has name filled, else use the code below.
+                            i.name,
+                            # We assume the instructor name is filled, else use the code below.
                             # i.name if isinstance(i.name, str) else '',
                             f"({i.email})" if isinstance(i.email, str) else "",
                             f"{f'{i.rating}/100' if isinstance(i.rating, int) else ''}",
@@ -103,7 +105,7 @@ def schedule_time_conflicts(course_list: list[Course]) -> bool:
         True if schedule has time conflicts, False if no time conflicts exist.
     """
     if not course_list:  # Empty list
-        return True
+        return False
     mt_list = []
     for course in course_list:
         mt_list += course.class_time
@@ -204,7 +206,8 @@ def course_to_extended_meetings(course_list: list[Course]) -> list[ExtendedMeeti
                 location="VIRTUAL" if c.is_virtual else str(mt.location),
                 name=f"{c.title} {c.class_type[:3].upper()} ({c.course_code})",
                 description=(
-                    rf"Instructor{'s' if len(c.instructors) > 1 else ''}: {c.faculty_instructors_text()}\n"
+                    rf"Instructor{'s' if len(c.instructors) > 1 else ''}: "
+                    rf"{c.faculty_instructors_text()}\n"
                     rf"CRN: {c.crn}\n"
                     rf"Section: {c.section}\n"
                     rf"Seats filled: {c.seats_filled}\n"
