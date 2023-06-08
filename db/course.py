@@ -4,6 +4,9 @@ import os
 from datetime import datetime
 
 from sqlalchemy import (
+    and_,
+    not_,
+    or_,
     create_engine,
     event,
     Column,
@@ -23,7 +26,7 @@ from ..classes.course_class import Course, merge_course_meeting_occurrences
 from ..classes.instructor_class import Instructor
 from ..classes.meeting_class import Meeting
 
-from . import db_globals as DG
+import db_globals as DG
 
 Engine = None
 Session: sessionmaker = None
@@ -250,30 +253,33 @@ class TBL_Course_Restriction(Base):
     )
 
 
-def get_courses_via_course_id(course_id_list: list[int]) -> list[Course]:
-    if not course_id_list:
+def get_courses_via(
+    course_data_id_list: list[int] | None = None,
+    course_id_list: list[int] | None = None,
+) -> list[Course]:
+    if (not course_data_id_list or course_data_id_list is None) and (
+        not course_id_list or course_id_list is None
+    ):
         return []
 
-    ids = []
-    with Session.begin() as session:
-        ids = (
-            session.query(TBL_Course_Data.course_data_id)
-            .filter(TBL_Course_Data.course_id.in_(course_id_list))
-            .all()
-        )
-        ids = [int(i[0]) for i in ids]
-    return get_courses_via_data_id(data_id_list=ids)
-
-
-def get_courses_via_data_id(data_id_list: list[int]) -> list[Course]:
-    if not data_id_list:
-        return []
+    if course_data_id_list is None:
+        course_data_id_list = []
+    if course_id_list is None:
+        course_id_list = []
 
     course_list = []
     with Session.begin() as session:
         c_d_result = (
             session.query(TBL_Course_Data)
-            .filter(TBL_Course_Data.course_data_id.in_(data_id_list))
+            .filter(
+                or_(
+                    TBL_Course_Data.course_data_id.in_(course_data_id_list),
+                    and_(
+                        not_(TBL_Course_Data.course_data_id.in_(course_data_id_list)),
+                        TBL_Course_Data.course_id.in_(course_id_list),
+                    ),
+                )
+            )
             .all()
         )
         for c_d_r in c_d_result:
@@ -284,21 +290,27 @@ def get_courses_via_data_id(data_id_list: list[int]) -> list[Course]:
             )
             meeting_list = []
             for mt_r in mt_result:
-                meeting_list.append(
-                    Meeting(
-                        time_start=datetime.strptime(
-                            str(mt_r.begin_time), "%H%M"
-                        ).time(),
-                        time_end=datetime.strptime(str(mt_r.end_time), "%H%M").time(),
-                        date_start=mt_r.start_date,
-                        date_end=mt_r.end_date,
-                        occurrence_unit=None,  # TODO: Temporary hardcode, needs to be calculated at scraper level.
-                        occurrence_interval=None,  # TODO: Temporary hardcode, needs to be calculated at scraper level.
-                        occurrence_limit=None,  # TODO: Temporary hardcode, needs to be calculated at scraper level.
-                        days_of_week=mt_r.days_of_week,
-                        location=f"{mt_r.campus_description} {mt_r.building} {mt_r.room}",
+                if mt_r.begin_time is not None and mt_r.end_time is not None:
+                    meeting_list.append(
+                        Meeting(
+                            time_start=datetime.strptime(
+                                str(mt_r.begin_time), "%H%M"
+                            ).time(),
+                            time_end=datetime.strptime(
+                                str(mt_r.end_time), "%H%M"
+                            ).time(),
+                            date_start=mt_r.start_date,
+                            date_end=mt_r.end_date,
+                            occurrence_unit=None,
+                            # TODO: Temporary hardcode, needs to be calculated at scraper level.
+                            occurrence_interval=None,
+                            # TODO: Temporary hardcode, needs to be calculated at scraper level.
+                            occurrence_limit=None,
+                            # TODO: Temporary hardcode, needs to be calculated at scraper level.
+                            days_of_week=mt_r.days_of_week,
+                            location=f"{mt_r.campus_description} {mt_r.building} {mt_r.room}",
+                        )
                     )
-                )
             c_fc_result = (
                 session.query(TBL_Course_Faculty.faculty_id)
                 .filter(TBL_Course_Faculty.course_data_id == c_d_r.course_data_id)
@@ -345,7 +357,8 @@ def get_courses_via_data_id(data_id_list: list[int]) -> list[Course]:
                     if "virtual" in c_d_r.instructional_method_description.lower()
                     else False,
                     # TODO: This needs to be determined at scraper level ^.
-                    restrictions=None,  # TODO: Temporary hardcode, needs restrictions support at scraper level.
+                    restrictions=None,
+                    # TODO: Temporary hardcode, needs restrictions support at scraper level.
                     instructional_method=c_d_r.instructional_method_description,
                     is_open=c_d_r.open_section,
                     wait_filled=c_d_r.wait_count,
