@@ -26,7 +26,7 @@ from ..classes.course_class import Course, merge_course_meeting_occurrences
 from ..classes.instructor_class import Instructor
 from ..classes.meeting_class import Meeting
 
-import db_globals as DG
+from . import db_globals as DG
 
 Engine = None
 Session: sessionmaker = None
