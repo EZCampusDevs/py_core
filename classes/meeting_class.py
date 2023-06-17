@@ -158,16 +158,16 @@ class Meeting(BaseModel):
         if self.occurrence_unit == constants.OU_DAYS:
             return rrule(
                 DAILY,
-                dtstart=self.date_start,
-                until=self.date_end,
+                dtstart=datetime.combine(self.date_start, self.time_start),
+                until=datetime.combine(self.date_end, self.time_end),
                 interval=self.occurrence_interval,
             )
         elif self.occurrence_unit == constants.OU_WEEKS:
             by_weekday = [MO, TU, WE, TH, FR, SA, SU]
             return rrule(
                 WEEKLY,
-                dtstart=self.date_start,
-                until=self.date_end,
+                dtstart=datetime.combine(self.date_start, self.time_start),
+                until=datetime.combine(self.date_end, self.time_end),
                 interval=self.occurrence_interval,
                 byweekday=[by_weekday[w_i] for w_i in self.decode_weekday_ints()],
             )
@@ -186,23 +186,23 @@ class Meeting(BaseModel):
             ]
             return rrule(
                 MONTHLY,
-                dtstart=self.date_start,
-                until=self.date_end,
+                dtstart=datetime.combine(self.date_start, self.time_start),
+                until=datetime.combine(self.date_end, self.time_end),
                 interval=self.occurrence_interval,
                 byweekday=by_weekday[self.date_start.weekday()],
             )
         elif self.occurrence_unit == constants.OU_MONTHS_N:
             return rrule(
                 MONTHLY,
-                dtstart=self.date_start,
-                until=self.date_end,
+                dtstart=datetime.combine(self.date_start, self.time_start),
+                until=datetime.combine(self.date_end, self.time_end),
                 interval=self.occurrence_interval,
             )
         elif self.occurrence_unit == constants.OU_YEARS:
             return rrule(
                 YEARLY,
-                dtstart=self.date_start,
-                until=self.date_end,
+                dtstart=datetime.combine(self.date_start, self.time_start),
+                until=datetime.combine(self.date_end, self.time_end),
                 interval=self.occurrence_interval,
             )
         else:  # self.occurrence_unit is None:
