@@ -1,6 +1,15 @@
 import os
 from dotenv import load_dotenv
 
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+
+Engine = None
+Session: sessionmaker = None
+Base = declarative_base()
+
+Database_Initialized = False
+
 load_dotenv()
 
 db_host = os.getenv("db_host")
@@ -12,10 +21,6 @@ db_dir = os.getenv("db_dir")
 
 
 def check_env():
-    if not db_dir:
-        raise RuntimeError(
-            "db_dir must be set! Set the environment variable or the value in db.db_globals"
-        )
     if not db_host:
         raise RuntimeError(
             "db_host must be set! Set the environment variable or the value in db.db_globals"
