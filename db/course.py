@@ -1,6 +1,3 @@
-# TODO: Tables should probably get some column name standardization fix.
-
-import os
 from datetime import datetime
 
 from sqlalchemy import (
@@ -9,12 +6,18 @@ from sqlalchemy import (
     or_,
 )
 
+from . import db_globals as DG
+from .db_tables import (
+    TBL_Course_Data,
+    TBL_Meeting,
+    TBL_Course_Faculty,
+    TBL_Faculty,
+    TBL_Course,
+    TBL_Class_Type,
+)
 from ..classes.course_class import Course, merge_course_meeting_occurrences
 from ..classes.instructor_class import Instructor
 from ..classes.meeting_class import Meeting
-
-from . import db_globals as DG
-from . db_tables import TBL_Course_Data, TBL_Meeting, TBL_Course_Faculty, TBL_Faculty, TBL_Course,TBL_Class_Type
 
 
 def get_courses_via(
@@ -57,12 +60,8 @@ def get_courses_via(
                 if mt_r.begin_time is not None and mt_r.end_time is not None:
                     meeting_list.append(
                         Meeting(
-                            time_start=datetime.strptime(
-                                str(mt_r.begin_time), "%H%M"
-                            ).time(),
-                            time_end=datetime.strptime(
-                                str(mt_r.end_time), "%H%M"
-                            ).time(),
+                            time_start=datetime.strptime(str(mt_r.begin_time), "%H%M").time(),
+                            time_end=datetime.strptime(str(mt_r.end_time), "%H%M").time(),
                             date_start=mt_r.start_date,
                             date_end=mt_r.end_date,
                             occurrence_unit=None,

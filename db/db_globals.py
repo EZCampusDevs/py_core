@@ -1,8 +1,7 @@
 import os
+
 from dotenv import load_dotenv
-
 from sqlalchemy.orm import sessionmaker, declarative_base
-
 
 Engine = None
 Session: sessionmaker = None
@@ -38,6 +37,4 @@ def check_env():
             "db_pass must be set! Set the environment variable or the value in db.db_globals"
         )
     if not db_name:
-        raise RuntimeError(
-            "db_name must be set! Set the environment variable or the value in db"
-        )
+        raise RuntimeError("db_name must be set! Set the environment variable or the value in db")

@@ -1,5 +1,5 @@
-
 import logging
+
 from sqlalchemy import (
     Date,
     Float,
@@ -10,10 +10,9 @@ from sqlalchemy import (
     BINARY,
     VARCHAR,
     ForeignKey,
-    Table
+    Table,
 )
 from sqlalchemy import UniqueConstraint
-
 
 from . import db_globals as DG
 
@@ -42,7 +41,6 @@ class TBL_Term(DG.Base):
     real_term_id = Column(Integer)
     term_description = Column(VARCHAR(128))
 
-
     __table_args__ = (
         UniqueConstraint("school_id", "real_term_id", name="_term_id_school_id_constraint"),
     )
@@ -59,6 +57,7 @@ class TBL_Course(DG.Base):
     __table_args__ = (
         UniqueConstraint("term_id", "course_code", name="_term_id_course_code_constraint"),
     )
+
 
 class TBL_Class_Type(DG.Base):
     __tablename__ = "tbl_classtype"
@@ -211,9 +210,6 @@ class TBL_Course_Restriction(DG.Base):
     restriction_id = Column(Integer, ForeignKey("tbl_restriction.restriction_id"), primary_key=True)
 
 
-
-
-
 def create_all():
     DG.Base.metadata.create_all(DG.Engine)
 
@@ -246,4 +242,3 @@ def drop_all():
                 if "Unknown table" in str(e):
                     continue
                 logging.warn(e)
-
