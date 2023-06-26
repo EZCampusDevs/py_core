@@ -39,7 +39,7 @@ class Meeting(BaseModel):
     occurrence_unit: None | str = None
     occurrence_interval: None | int = None
     # If occurrence_unit is None, occurrence_interval must be None.
-    occurrence_limit: date | int | None = None
+    occurrence_limit: None | int | date = None
     # If occurrence_unit is None, occurrence_limit must be None.
     days_of_week: int = None  # Weekdays as 1 int value.
     # NOTE: Functionally speaking, days_of_week really only affects Meetings with the occurrence
@@ -245,15 +245,17 @@ class Meeting(BaseModel):
         else:  # self.occurrence_unit is None:
             return None
 
-    def get_ics_rrule_str(self) -> str:
-        full_rrule_str = str(self.get_rrule())
-        return (
-            f"DTSTART;TZID=America/Toronto:"
-            f"{datetime.combine(self.date_start, self.time_start).strftime('%Y%m%dT%H%M%S')}\n"
-            f"DTEND;TZID=America/Toronto:"
-            f"{datetime.combine(self.date_end, self.time_end).strftime('%Y%m%dT%H%M%S')}\n"
-            f"{full_rrule_str[full_rrule_str.index('RRULE:'):]}"
-        )
+    def get_ics_rrule_str(self) -> str | None:
+        result = (
+                f"DTSTART;TZID=America/Toronto:"
+                f"{datetime.combine(self.date_start, self.time_start).strftime('%Y%m%dT%H%M%S')}\n"
+                f"DTEND;TZID=America/Toronto:"
+                f"{datetime.combine(self.date_end, self.time_end).strftime('%Y%m%dT%H%M%S')}"
+            )
+        if self.occurrence_unit is not None:
+            full_rrule_str = str(self.get_rrule())
+            result += f"\n{full_rrule_str[full_rrule_str.index('RRULE:'):]}"
+        return result
 
     def all_start_dates(self) -> list[date]:
         mt_rrule = self.get_rrule()
