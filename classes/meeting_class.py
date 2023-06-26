@@ -128,7 +128,7 @@ class Meeting(BaseModel):
     def verify_days_of_week(cls, values):
         occurrence_unit = values.get("occurrence_unit")
         days_of_week = values.get("days_of_week")
-        if occurrence_unit == constants.OU_WEEKS:
+        if occurrence_unit == constants.OU_WEEKS or occurrence_unit == constants.OU_MONTHS_WD:
             try:
                 weekday_ints = general.decode_weekday_ints(days_of_week)
                 if len(weekday_ints) != len(set(weekday_ints)):
