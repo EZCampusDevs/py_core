@@ -152,21 +152,38 @@ class Meeting(BaseModel):
 
     def get_rrule(self) -> rrule | None:
         if self.occurrence_unit == constants.OU_DAYS:
-            return rrule(
-                DAILY,
-                dtstart=datetime.combine(self.date_start, self.time_start),
-                until=datetime.combine(self.date_end, self.time_end),
-                interval=self.occurrence_interval,
-            )
+            if isinstance(self.occurrence_limit, int):
+                return rrule(
+                    DAILY,
+                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    count=self.occurrence_limit,
+                    interval=self.occurrence_interval,
+                )
+            else:  # isinstance(self.occurrence_limit, date):
+                return rrule(
+                    DAILY,
+                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    until=datetime.combine(self.occurrence_limit, self.time_end),
+                    interval=self.occurrence_interval,
+                )
         elif self.occurrence_unit == constants.OU_WEEKS:
             by_weekday = [MO, TU, WE, TH, FR, SA, SU]
-            return rrule(
-                WEEKLY,
-                dtstart=datetime.combine(self.date_start, self.time_start),
-                until=datetime.combine(self.date_end, self.time_end),
-                interval=self.occurrence_interval,
-                byweekday=[by_weekday[w_i] for w_i in self.decode_weekday_ints()],
-            )
+            if isinstance(self.occurrence_limit, int):
+                return rrule(
+                    WEEKLY,
+                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    count=self.occurrence_limit,
+                    interval=self.occurrence_interval,
+                    byweekday=[by_weekday[w_i] for w_i in self.decode_weekday_ints()],
+                )
+            else:  # isinstance(self.occurrence_limit, date):
+                return rrule(
+                    WEEKLY,
+                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    until=datetime.combine(self.occurrence_limit, self.time_end),
+                    interval=self.occurrence_interval,
+                    byweekday=[by_weekday[w_i] for w_i in self.decode_weekday_ints()],
+                )
         elif self.occurrence_unit == constants.OU_MONTHS_WD:
             ordinal = (self.date_start.day - 1) // 7 + 1
             # Determine with nth date_start.weekday() that date_start is.
@@ -179,27 +196,52 @@ class Meeting(BaseModel):
                 SA(ordinal),
                 SU(ordinal),
             ]
-            return rrule(
-                MONTHLY,
-                dtstart=datetime.combine(self.date_start, self.time_start),
-                until=datetime.combine(self.date_end, self.time_end),
-                interval=self.occurrence_interval,
-                byweekday=by_weekday[self.date_start.weekday()],
-            )
+            if isinstance(self.occurrence_limit, int):
+                return rrule(
+                    MONTHLY,
+                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    count=self.occurrence_limit,
+                    interval=self.occurrence_interval,
+                    byweekday=by_weekday[self.date_start.weekday()],
+                )
+            else:  # isinstance(self.occurrence_limit, date):
+                return rrule(
+                    MONTHLY,
+                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    until=datetime.combine(self.occurrence_limit, self.time_end),
+                    interval=self.occurrence_interval,
+                    byweekday=by_weekday[self.date_start.weekday()],
+                )
         elif self.occurrence_unit == constants.OU_MONTHS_N:
-            return rrule(
-                MONTHLY,
-                dtstart=datetime.combine(self.date_start, self.time_start),
-                until=datetime.combine(self.date_end, self.time_end),
-                interval=self.occurrence_interval,
-            )
+            if isinstance(self.occurrence_limit, int):
+                return rrule(
+                    MONTHLY,
+                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    count=self.occurrence_limit,
+                    interval=self.occurrence_interval,
+                )
+            else:  # isinstance(self.occurrence_limit, date):
+                return rrule(
+                    MONTHLY,
+                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    until=datetime.combine(self.occurrence_limit, self.time_end),
+                    interval=self.occurrence_interval,
+                )
         elif self.occurrence_unit == constants.OU_YEARS:
-            return rrule(
-                YEARLY,
-                dtstart=datetime.combine(self.date_start, self.time_start),
-                until=datetime.combine(self.date_end, self.time_end),
-                interval=self.occurrence_interval,
-            )
+            if isinstance(self.occurrence_limit, int):
+                return rrule(
+                    YEARLY,
+                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    count=self.occurrence_limit,
+                    interval=self.occurrence_interval,
+                )
+            else:  # isinstance(self.occurrence_limit, date):
+                return rrule(
+                    YEARLY,
+                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    until=datetime.combine(self.occurrence_limit, self.time_end),
+                    interval=self.occurrence_interval,
+                )
         else:  # self.occurrence_unit is None:
             return None
 
