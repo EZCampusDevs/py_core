@@ -1,5 +1,7 @@
 """Constants related to program computation."""
 
+BRAND = "fastapi_backend"
+
 # Days of the week representation.
 # 2 has a value of 0010 in binary, so it would be Tuesday.
 # 3 has a value of 0011 in binary, so it would be Monday, Tuesday
