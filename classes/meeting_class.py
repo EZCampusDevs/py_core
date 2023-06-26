@@ -204,44 +204,14 @@ class Meeting(BaseModel):
             return None
 
     def get_ics_rrule_str(self) -> str:
-        def get_limit():
-            if isinstance(self.occurrence_limit, int):
-                return f"COUNT={self.occurrence_limit}"
-            elif isinstance(self.occurrence_limit, date):
-                dt_ol = datetime.combine(self.occurrence_limit, time.max).strftime("%Y%m%dT%H%M%S")
-                return f"UNTIL={dt_ol}"
-            else:
-                raise TypeError(f"ex_mt.occurrence_limit must be type {date} or {int}")
-
-        result = (
+        full_rrule_str = str(self.get_rrule())
+        return (
             f"DTSTART;TZID=America/Toronto:"
             f"{datetime.combine(self.date_start, self.time_start).strftime('%Y%m%dT%H%M%S')}\n"
             f"DTEND;TZID=America/Toronto:"
             f"{datetime.combine(self.date_end, self.time_end).strftime('%Y%m%dT%H%M%S')}\n"
+            f"{full_rrule_str[full_rrule_str.index('RRULE:'):]}"
         )
-
-        if self.occurrence_unit == constants.OU_DAYS:
-            result += f"RRULE:FREQ=DAILY;{get_limit()};INTERVAL={self.occurrence_interval}"
-        elif self.occurrence_unit == constants.OU_WEEKS:
-            result += (
-                f"RRULE:FREQ=WEEKLY;{get_limit()}"
-                f";BYDAY={','.join([DAYS[n] for n in self.decode_weekday_ints()])}"
-                f";INTERVAL={self.occurrence_interval}"
-            )
-        elif self.occurrence_unit == constants.OU_MONTHS_WD:
-            result += (
-                f"RRULE:FREQ=MONTHLY;{get_limit()};INTERVAL={self.occurrence_interval}"
-                f";BYDAY={(self.date_start.day - 1) // 7 + 1}{DAYS[self.date_start.weekday()]}"
-            )
-        elif self.occurrence_unit == constants.OU_MONTHS_N:
-            result += (
-                f"RRULE:FREQ=MONTHLY;{get_limit()};INTERVAL={self.occurrence_interval}"
-                f";BYMONTHDAY={self.date_start.day}"
-            )
-        elif self.occurrence_unit == constants.OU_YEARS:
-            result += f"RRULE:FREQ=YEARLY;{get_limit()};INTERVAL={self.occurrence_interval}"
-
-        return result
 
     def all_start_dates(self) -> list[date]:
         mt_rrule = self.get_rrule()
