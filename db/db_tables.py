@@ -4,12 +4,14 @@ from sqlalchemy import (
     Date,
     Float,
     Column,
+    Index,
     Integer,
     Boolean,
     TIMESTAMP,
     BINARY,
     VARCHAR,
     ForeignKey,
+    String,
     Table,
 )
 from sqlalchemy import UniqueConstraint
@@ -209,6 +211,24 @@ class TBL_Course_Restriction(DG.Base):
     course_data_id = Column(Integer, ForeignKey("tbl_course_data.course_data_id"), primary_key=True)
     restriction_id = Column(Integer, ForeignKey("tbl_restriction.restriction_id"), primary_key=True)
 
+class TBL_Word(DG.Base):
+    __tablename__ = 'tbl_word'
+    
+    word_id = Column(Integer, primary_key=True)
+    word = Column(VARCHAR(255), unique=True)
+    
+    __table_args__ = (
+        Index('word_index', 'word'),
+    )
+
+
+class TBL_Word_Course_Data(DG.Base):
+    __tablename__ = 'tbl_word_course_data'
+
+    word_id = Column(Integer, ForeignKey('tbl_word.word_id'), primary_key=True)
+    course_data_id = Column(Integer, ForeignKey('tbl_course_data.course_data_id'), primary_key=True)
+    count = Column(Integer)
+
 
 def create_all():
     DG.Base.metadata.create_all(DG.Engine)
@@ -228,8 +248,8 @@ def drop_all():
         TBL_Restriction.__tablename__,
         TBL_Restriction_Type.__tablename__,
         TBL_School.__tablename__,
-        "tbl_word",
-        "tbl_word_course_data",
+        TBL_Word.__tablename__,
+        TBL_Word_Course_Data.__tablename__,
     ]
     for name in db_names:
         for name in db_names:
