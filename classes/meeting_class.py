@@ -144,6 +144,12 @@ class Meeting(BaseModel):
             # raise ValueError(f"occurrence_unit={occurrence_unit}, expected days_of_week={None}, got {days_of_week}")
         return values
 
+    def dt_start(self) -> datetime:
+        return datetime.combine(self.date_start, self.time_start)
+
+    def dt_end(self) -> datetime:
+        return datetime.combine(self.date_end, self.time_end)
+
     def decode_days_of_week(self) -> dict[str, bool]:
         return general.decode_days_of_week(self.days_of_week)
 
@@ -247,11 +253,11 @@ class Meeting(BaseModel):
 
     def get_ics_rrule_str(self) -> str | None:
         result = (
-                f"DTSTART;TZID=America/Toronto:"
-                f"{datetime.combine(self.date_start, self.time_start).strftime('%Y%m%dT%H%M%S')}\n"
-                f"DTEND;TZID=America/Toronto:"
-                f"{datetime.combine(self.date_end, self.time_end).strftime('%Y%m%dT%H%M%S')}"
-            )
+            f"DTSTART;TZID=America/Toronto:"
+            f"{datetime.combine(self.date_start, self.time_start).strftime('%Y%m%dT%H%M%S')}\n"
+            f"DTEND;TZID=America/Toronto:"
+            f"{datetime.combine(self.date_end, self.time_end).strftime('%Y%m%dT%H%M%S')}"
+        )
         if self.occurrence_unit is not None:
             full_rrule_str = str(self.get_rrule())
             result += f"\n{full_rrule_str[full_rrule_str.index('RRULE:'):]}"
@@ -450,10 +456,8 @@ def meetings_conflict(
             # Convert to non-reoccurring Meetings to run 1-1 comparison.
 
     if len(no_occurrence_mts) >= 3:  # More than 3 meetings to compare.
-        no_occurrence_mts.sort(key=lambda m: (m.date_start, m.time_start, m.time_end))
-        # 1. m.date_start. <low/early to high/later>.
-        # 2. m.time_start. <low/early to high/later>.
-        # 3. m.time_end. <low/early to high/later>.
+        no_occurrence_mts.sort(key=lambda m: (m.dt_start()))
+        # 1. m.dt_start() <low/early to high/later>
         # Sorting ensures only the minimum comparisons are made.
         for i in range(1, len(no_occurrence_mts)):
             conflict_detailed = meeting_conflict(
@@ -484,26 +488,14 @@ def meeting_conflict(
         Boolean for if for conflict exists, conflicting datetime, None if no datetime.
     """
 
-    def time_conflict() -> tuple[bool, time | None]:
-        if mt_1.time_start <= mt_2.time_start < mt_1.time_end:
-            return True, mt_2.time_start
-        if mt_2.time_start <= mt_1.time_start < mt_2.time_end:
-            return True, mt_1.time_start
-        if mt_1.time_start < mt_2.time_end <= mt_1.time_end:
-            return True, mt_1.time_start
-        if mt_2.time_start < mt_1.time_end <= mt_2.time_end:
-            return True, mt_2.time_start
-        return False, None
-
-    def date_conflict() -> tuple[bool, date | None]:
-        if mt_1.date_start <= mt_2.date_start < mt_1.date_end:
-            return True, mt_2.date_start
-        if mt_2.date_start <= mt_1.date_start < mt_2.date_end:
-            return True, mt_1.date_start
-        if mt_1.date_start < mt_2.date_end <= mt_1.date_end:
-            return True, mt_1.date_start
-        if mt_2.date_start < mt_1.date_end <= mt_2.date_end:
-            return True, mt_2.date_start
+    def dt_conflict() -> tuple[bool, datetime | None]:
+        """Return whether there is a conflict and the datetime of the conflict."""
+        dt_1_start, dt_1_end = mt_1.dt_start(), mt_1.dt_end()
+        dt_2_start, dt_2_end = mt_2.dt_start(), mt_2.dt_end()
+        if dt_1_start <= dt_2_start <= dt_1_end:
+            return True, dt_2_start
+        if dt_2_start <= dt_1_start <= dt_2_end:
+            return True, dt_1_start
         return False, None
 
     if mt_1.occurrence_unit is not None or mt_2.occurrence_unit is not None:
@@ -512,10 +504,9 @@ def meeting_conflict(
         )
 
     # 1 to 1 comparison.
-    dc = date_conflict()
-    tc = time_conflict()
-    if dc[0] and tc[0]:
-        return (True, datetime.combine(dc[1], tc[1])) if detailed else True
+    conflict = dt_conflict()
+    if conflict[0]:
+        return (True, conflict[1]) if detailed else True
     else:
         return (False, None) if detailed else False
 
