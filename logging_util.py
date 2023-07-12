@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-import constants
+from . import constants
 
 __loggers__: set[str] = set()
 
