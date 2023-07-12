@@ -7,7 +7,8 @@ from pydantic import BaseModel
 
 
 class School(BaseModel):
-    """School class, offers a standardized single object to represent all educational institutions."""
+    """School class, offers a standardized single object to represent all educational institutions.
+    """
 
     short_name: str  # Must be unique against all other schools.
     full_name: str

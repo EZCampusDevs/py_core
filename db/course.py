@@ -60,8 +60,12 @@ def get_courses_via(
                 if mt_r.begin_time is not None and mt_r.end_time is not None:
                     meeting_list.append(
                         Meeting(
-                            time_start=datetime.strptime(str(mt_r.begin_time), "%H%M").time(),
-                            time_end=datetime.strptime(str(mt_r.end_time), "%H%M").time(),
+                            time_start=datetime.strptime(
+                                str(mt_r.begin_time), "%H%M"
+                            ).time(),
+                            time_end=datetime.strptime(
+                                str(mt_r.end_time), "%H%M"
+                            ).time(),
                             date_start=mt_r.start_date,
                             date_end=mt_r.end_date,
                             occurrence_unit=None,

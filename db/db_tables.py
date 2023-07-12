@@ -11,7 +11,6 @@ from sqlalchemy import (
     BINARY,
     VARCHAR,
     ForeignKey,
-    String,
     Table,
 )
 from sqlalchemy import UniqueConstraint
@@ -44,7 +43,9 @@ class TBL_Term(DG.Base):
     term_description = Column(VARCHAR(128))
 
     __table_args__ = (
-        UniqueConstraint("school_id", "real_term_id", name="_term_id_school_id_constraint"),
+        UniqueConstraint(
+            "school_id", "real_term_id", name="_term_id_school_id_constraint"
+        ),
     )
 
 
@@ -57,7 +58,9 @@ class TBL_Course(DG.Base):
     course_description = Column(VARCHAR(128))
 
     __table_args__ = (
-        UniqueConstraint("term_id", "course_code", name="_term_id_course_code_constraint"),
+        UniqueConstraint(
+            "term_id", "course_code", name="_term_id_course_code_constraint"
+        ),
     )
 
 
@@ -126,13 +129,17 @@ class TBL_Course_Data(DG.Base):
     # Virtual Meet Times
     instructional_method_description = Column(VARCHAR(128))
 
-    __table_args__ = (UniqueConstraint("course_id", "crn", name="_course_id_crn_constraint"),)
+    __table_args__ = (
+        UniqueConstraint("course_id", "crn", name="_course_id_crn_constraint"),
+    )
 
 
 class TBL_Course_Faculty(DG.Base):
     __tablename__ = "tbl_course_faculty"
 
-    course_data_id = Column(Integer, ForeignKey("tbl_course_data.course_data_id"), primary_key=True)
+    course_data_id = Column(
+        Integer, ForeignKey("tbl_course_data.course_data_id"), primary_key=True
+    )
 
     faculty_id = Column(Integer, ForeignKey("tbl_faculty.faculty_id"), primary_key=True)
 
@@ -202,31 +209,38 @@ class TBL_Restriction(DG.Base):
     restriction = Column(VARCHAR(128))
     must_be_in = Column(Boolean)
 
-    restriction_type = Column(Integer, ForeignKey("tbl_restriction_type.restriction_type_id"))
+    restriction_type = Column(
+        Integer, ForeignKey("tbl_restriction_type.restriction_type_id")
+    )
 
 
 class TBL_Course_Restriction(DG.Base):
     __tablename__ = "tbl_course_restriction"
 
-    course_data_id = Column(Integer, ForeignKey("tbl_course_data.course_data_id"), primary_key=True)
-    restriction_id = Column(Integer, ForeignKey("tbl_restriction.restriction_id"), primary_key=True)
-
-class TBL_Word(DG.Base):
-    __tablename__ = 'tbl_word'
-    
-    word_id = Column(Integer, primary_key=True)
-    word = Column(VARCHAR(255), unique=True)
-    
-    __table_args__ = (
-        Index('word_index', 'word'),
+    course_data_id = Column(
+        Integer, ForeignKey("tbl_course_data.course_data_id"), primary_key=True
+    )
+    restriction_id = Column(
+        Integer, ForeignKey("tbl_restriction.restriction_id"), primary_key=True
     )
 
 
-class TBL_Word_Course_Data(DG.Base):
-    __tablename__ = 'tbl_word_course_data'
+class TBL_Word(DG.Base):
+    __tablename__ = "tbl_word"
 
-    word_id = Column(Integer, ForeignKey('tbl_word.word_id'), primary_key=True)
-    course_data_id = Column(Integer, ForeignKey('tbl_course_data.course_data_id'), primary_key=True)
+    word_id = Column(Integer, primary_key=True)
+    word = Column(VARCHAR(255), unique=True)
+
+    __table_args__ = (Index("word_index", "word"),)
+
+
+class TBL_Word_Course_Data(DG.Base):
+    __tablename__ = "tbl_word_course_data"
+
+    word_id = Column(Integer, ForeignKey("tbl_word.word_id"), primary_key=True)
+    course_data_id = Column(
+        Integer, ForeignKey("tbl_course_data.course_data_id"), primary_key=True
+    )
     count = Column(Integer)
 
 

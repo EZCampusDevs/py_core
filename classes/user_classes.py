@@ -34,8 +34,8 @@ from ..constants import (
 
 API_406_USERNAME_INVALID = HTTPException(
     status_code=status.HTTP_406_NOT_ACCEPTABLE,
-    detail=f"Usernames must be [{USERNAME_MIN_LEN} to {USERNAME_MAX_LEN}] characters and can only contain lowercase "
-    f"alphanumerics, '.' and '_'.",
+    detail=f"Usernames must be [{USERNAME_MIN_LEN} to {USERNAME_MAX_LEN}] characters and can only "
+    f"contain lowercase alphanumerics, '.' and '_'.",
 )
 API_406_EMAIL_INVALID = HTTPException(
     status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Email must be a valid format."
@@ -410,8 +410,8 @@ def edit_user_from_basic_user(basic_user: BasicUser, password: str) -> EditUser:
         password: New password of the EditedUser.
 
     Notes:
-        Warning! The basic user uses a hashed password. Translated EditUser will have this hashed password. The
-        EditUser password should be updated after.
+        Warning! The basic user uses a hashed password. Translated EditUser will have this hashed
+        password. The EditUser password should be updated after.
 
     Returns:
         Converted EditUser.
