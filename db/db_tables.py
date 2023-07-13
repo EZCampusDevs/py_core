@@ -67,9 +67,19 @@ class TBL_Class_Type(DG.Base):
     class_type_id = Column(Integer, primary_key=True, autoincrement=True)
     class_type = Column(VARCHAR(128))
 
+class TBL_Subject(DG.Base):
+    __tablename__ = "tbl_subject"
+
+    subject_id = Column(Integer, primary_key=True, autoincrement=True)
+    # BIOL
+    subject = Column(VARCHAR(128))
+    # Biology
+    subject_long = Column(VARCHAR(128))
+
 
 class TBL_Course_Data(DG.Base):
     __tablename__ = "tbl_course_data"
+    __table_args__ = (UniqueConstraint("course_id", "crn", name="_course_id_crn_constraint"),)
 
     course_data_id = Column(Integer, autoincrement=True, primary_key=True)
 
@@ -77,56 +87,36 @@ class TBL_Course_Data(DG.Base):
 
     scrape_id = Column(Integer, ForeignKey("tbl_scrape_history.scrape_id"))
 
+    class_type_id = Column(Integer, ForeignKey("tbl_classtype.class_type_id"))
+
+    subject_id = Column(Integer, ForeignKey("tbl_subject.subject_id"))
+
     # course reference number / crn
     crn = Column(VARCHAR(32))
-    # i'm not really sure what this actually is
-    id = Column(Integer)
 
-    # Biology II
     course_title = Column(VARCHAR(128))
-    # BIOL
-    subject = Column(VARCHAR(128))
-    # Biology
-    subject_long = Column(VARCHAR(128))
-
-    # 001 / 002 / 003...; conerting to int so will need to pad 0 later if needed
-    sequence_number = Column(VARCHAR(128))
 
     # which campus -> 'OT-North Oshawa'
     campus_description = Column(VARCHAR(128))
 
-    # lab, lecture, tutorial
-    class_type_id = Column(Integer, ForeignKey("tbl_classtype.class_type_id"))
+    maximum_enrollment = Column(Integer)
+    current_enrollment = Column(Integer)
+
+    maximum_waitlist = Column(Integer)
+    current_waitlist = Column(Integer)
 
     credit_hours = Column(Integer)
-    maximum_enrollment = Column(Integer)
-    enrollment = Column(Integer)
-    seats_available = Column(Integer)
-    wait_capacity = Column(Integer)
-    wait_count = Column(Integer)
-    wait_available = Column(Integer)
-    # cross_list = Column(VARCHAR)
-    # cross_list_capacity = Column(VARCHAR)
-    # cross_list_count = Column(Integer)
-    # cross_list_available = Column(Integer)
-    credit_hour_high = Column(Integer)
-    credit_hour_low = Column(Integer)
-    # credit_hour_indicator = Column(VARCHAR)
+
+    # this is actually instructionalMethodDescription
+    delivery = Column(VARCHAR(128))
+
     open_section = Column(Boolean)
     link_identifier = Column(VARCHAR(128))
     is_section_linked = Column(Boolean)
-    # reserved_seat_summary = Column(VARCHAR)
-    # section_attributes = Column(VARCHAR)
 
-    # CLS -> In-Person
-    # WB1 -> Virtual Meet Times
-    instructional_method = Column(VARCHAR(128))
+    # 001 / 002 / 003...; conerting to int so will need to pad 0 later if needed
+    sequence_number = Column(VARCHAR(128))
 
-    # In-Person
-    # Virtual Meet Times
-    instructional_method_description = Column(VARCHAR(128))
-
-    __table_args__ = (UniqueConstraint("course_id", "crn", name="_course_id_crn_constraint"),)
 
 
 class TBL_Course_Faculty(DG.Base):
@@ -163,9 +153,6 @@ class TBL_Meeting(DG.Base):
 
     building = Column(VARCHAR(128))
     building_description = Column(VARCHAR(128))
-
-    campus = Column(VARCHAR(128))
-    campus_description = Column(VARCHAR(128))
 
     meeting_type = Column(VARCHAR(128))
     meeting_type_description = Column(VARCHAR(128))
@@ -250,6 +237,7 @@ def drop_all():
         TBL_School.__tablename__,
         TBL_Word.__tablename__,
         TBL_Word_Course_Data.__tablename__,
+        TBL_Subject.__tablename__,
     ]
     for name in db_names:
         for name in db_names:

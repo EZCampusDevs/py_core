@@ -33,7 +33,7 @@ class Course(BaseModel):
     ]  # Defaults if not provided. Aka enrollment seats available.
     is_virtual: bool
     restrictions: Optional[dict]  # JSON data for class registration restrictions.
-    instructional_method: Optional[str]  # Non-essential (api forwarded) data.
+    
     is_open: Optional[bool]  # Non-essential (api forwarded) data.
     wait_filled: Optional[
         int
@@ -129,7 +129,6 @@ def merge_course_meeting_occurrences(course: Course) -> Course:
         seats_available=course.seats_available,
         is_virtual=course.is_virtual,
         restrictions=course.restrictions,
-        instructional_method=course.instructional_method,
         is_open=course.is_open,
         wait_filled=course.wait_filled,
         wait_capacity=course.wait_capacity,
