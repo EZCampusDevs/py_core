@@ -91,7 +91,7 @@ class Course(BaseModel):
                             # We assume the instructor name is filled, else use the code below.
                             # i.name if isinstance(i.name, str) else '',
                             f"({i.email})" if isinstance(i.email, str) else "",
-                            f"{f'{i.rating}/100' if isinstance(i.rating, int) else ''}",
+                            f"{f'{i.rating}%' if isinstance(i.rating, int) else 'N/A%'}",
                         ]
                     )
                     for i in self.instructors
@@ -102,16 +102,16 @@ class Course(BaseModel):
         )
 
     def unified_name(self) -> str:
-        return f"{self.title} | {self.class_type} ({self.course_code})"
+        return f"{self.title} ({self.class_type})"
 
     def unified_description(self) -> str:
         return (
-            rf"CRN: {self.crn} | Section: {self.section} | Class type: {self.class_type}"
-            rf"{' | Requires linked classes' if self.is_section_linked else ''}\n"
+            rf"{self.course_code} {self.title} ({self.class_type})\n"
+            rf"CRN: {self.crn} | Section: {self.section}\n"
             rf"Instructor{'s' if len(self.instructors) > 1 else ''}: "
             rf"{self.faculty_instructors_text()}\n"
             rf"Delivery: {self.delivery} | Campus: {self.campus_description}\n"
-            rf"{self.current_enrollment}/{self.maximum_enrollment} students enrolled"
+            rf"{self.current_enrollment} / {self.maximum_enrollment} students enrolled"
         )
 
 
