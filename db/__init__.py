@@ -1,13 +1,9 @@
+import os
 
-import os 
-
-from sqlalchemy import (
-    create_engine,
-    event
-)
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 
-# it's very important you don't import Engine, Session, and Base directly because 
+# it's very important you don't import Engine, Session, and Base directly because
 # the get modified at runtime, so you should use the functions below to access them
 from . import db_globals as DG
 from . import db_tables as DT
@@ -16,11 +12,14 @@ from . import db_tables as DT
 def Session():
     return DG.Session
 
+
 def Engine():
     return DG.Engine
 
+
 def Base():
     return DG.Base
+
 
 def init_database(
     use_mysql: bool = True,
@@ -30,10 +29,9 @@ def init_database(
     db_user: str = DG.db_user,
     db_pass: str = DG.db_pass,
     db_directory: str = DG.db_dir,
-    create: bool=True,
-    check_env: bool=True,
+    create: bool = True,
+    check_env: bool = True,
 ):
-
     if DG.Database_Initialized:
         raise Exception("Database engine already initialized")
 
@@ -46,7 +44,6 @@ def init_database(
     db_url = f"mysql+mysqlconnector://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
     DG.Engine = create_engine(db_url, echo=False)
 
-
     if not use_mysql:
 
         def _fk_pragma_on_connect(dbapi_con, con_record):
@@ -54,16 +51,10 @@ def init_database(
 
         event.listen(DG.Engine, "connect", _fk_pragma_on_connect)
 
-
     DG.Session = sessionmaker(bind=DG.Engine)
     DG.Base.metadata.bind = DG.Engine
-
 
     if create:
         DT.create_all()
 
-
     DG.Database_Initialized = True
-
-
-
