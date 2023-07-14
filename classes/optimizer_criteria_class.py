@@ -101,7 +101,7 @@ class CourseOptimizerCriteria(BaseModel):
                         #  Use some form of linear or function based rating scaling representing
                         #  what percentage of a meeting is within/outside the rating
                         #  available_times criteria.
-                        rating += mt.num_actual_meetings() * self.available_times_weight
+                        rating += mt.num_of_occurrences() * self.available_times_weight
         if self.is_virtual is not None and self.is_virtual_weight > 0:
             if self.is_virtual == course.is_virtual:
                 general_multiplier += 0.25
