@@ -30,9 +30,9 @@ class CourseOptimizerCriteria(BaseModel):
     min_seats_open: Minimum number of seats open for registration.
         Use case: User wants to ensure they will have open seats to be able to register.
     min_seats_open_weight:
-    max_capacity: Maximum capacity size.
+    maximum_enrollment: Maximum capacity size.
         Use case: User wants smaller class sizes.
-    max_capacity_weight:
+    maximum_enrollment_weight:
 
     Notes:
         The None state means that no criteria specified.
@@ -90,8 +90,7 @@ class CourseOptimizerCriteria(BaseModel):
             for sub in self.available_times:
                 for mt in course.class_time:
                     if sub[0] in mt.decode_days_of_week().values() and (
-                        sub[1] <= mt.time_start <= sub[2]
-                        or sub[1] <= mt.time_end <= sub[2]
+                        sub[1] <= mt.time_start <= sub[2] or sub[1] <= mt.time_end <= sub[2]
                     ):
                         # TODO(Daniel): This is an inaccurate representation ^^^!
                         #  Use some form of linear or function based rating scaling representing what percentage of a
@@ -116,11 +115,11 @@ class CourseOptimizerCriteria(BaseModel):
                     general_multiplier += 0.25
                     rating += instructor_rating * 100 * self.high_prof_rating_weight
         if self.min_seats_open is not None and self.min_seats_open_weight > 0:
-            if self.min_seats_open <= (course.max_capacity - course.seats_filled):
+            if self.min_seats_open <= (course.maximum_enrollment - course.current_enrollment):
                 general_multiplier += 0.25
                 rating += 100 * self.min_seats_open_weight
-        if self.max_capacity is not None and self.max_capacity_weight > 0:
-            if self.max_capacity >= course.max_capacity:
+        if self.max_capacity is not None and self.max_capacity > 0:
+            if self.max_capacity >= course.maximum_enrollment:
                 general_multiplier += 0.25
                 rating += 100 * self.max_capacity_weight
         rating *= general_multiplier

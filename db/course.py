@@ -5,6 +5,7 @@ from sqlalchemy import (
     not_,
     or_,
 )
+from sqlalchemy.orm.session import Session as SessionObj
 
 from . import db_globals as DG
 from .db_tables import (
@@ -14,6 +15,7 @@ from .db_tables import (
     TBL_Faculty,
     TBL_Course,
     TBL_Class_Type,
+    TBL_Subject,
 )
 from ..classes.course_class import Course, merge_course_meeting_occurrences
 from ..classes.instructor_class import Instructor
@@ -35,6 +37,7 @@ def get_courses_via(
         course_id_list = []
 
     course_list = []
+    session: SessionObj
     with DG.Session.begin() as session:
         c_d_result = (
             session.query(TBL_Course_Data)
@@ -60,12 +63,8 @@ def get_courses_via(
                 if mt_r.begin_time is not None and mt_r.end_time is not None:
                     meeting_list.append(
                         Meeting(
-                            time_start=datetime.strptime(
-                                str(mt_r.begin_time), "%H%M"
-                            ).time(),
-                            time_end=datetime.strptime(
-                                str(mt_r.end_time), "%H%M"
-                            ).time(),
+                            time_start=datetime.strptime(str(mt_r.begin_time), "%H%M").time(),
+                            time_end=datetime.strptime(str(mt_r.end_time), "%H%M").time(),
                             date_start=mt_r.start_date,
                             date_end=mt_r.end_date,
                             occurrence_unit=None,
@@ -75,7 +74,7 @@ def get_courses_via(
                             occurrence_limit=None,
                             # TODO: Temporary hardcode, needs to be calculated at scraper level.
                             days_of_week=mt_r.days_of_week,
-                            location=f"{mt_r.campus_description} {mt_r.building} {mt_r.room}",
+                            location=f"{c_d_r.campus_description} {mt_r.building} {mt_r.room}",
                         )
                     )
             c_fc_result = (
@@ -104,33 +103,40 @@ def get_courses_via(
                     .filter(TBL_Course.course_id == c_d_r.course_id)
                     .first()
                     .course_code,
-                    subject=c_d_r.subject,
-                    subject_long=c_d_r.subject_long,
+                    title=c_d_r.course_title,
                     crn=c_d_r.crn,
                     class_type=(
                         session.query(TBL_Class_Type.class_type)
                         .filter(TBL_Class_Type.class_type_id == c_d_r.class_type_id)
                         .first()
                     ).class_type,
-                    title=c_d_r.course_title,
                     section=c_d_r.sequence_number,
+                    subject=(
+                        session.query(TBL_Subject.subject)
+                        .filter(TBL_Subject.subject_id == c_d_r.subject_id)
+                        .first()
+                    ).subject,
+                    subject_long=(
+                        session.query(TBL_Subject.subject_long)
+                        .filter(TBL_Subject.subject_id == c_d_r.subject_id)
+                        .first()
+                    ).subject_long,
                     class_time=meeting_list,
-                    is_linked=c_d_r.is_section_linked,
+                    is_open_section=c_d_r.open_section,
+                    is_section_linked=c_d_r.is_section_linked,
                     link_tag=c_d_r.link_identifier,
-                    seats_filled=c_d_r.enrollment,
-                    max_capacity=c_d_r.maximum_enrollment,
-                    seats_available=c_d_r.seats_available,
-                    is_virtual=True
-                    if "virtual" in c_d_r.instructional_method_description.lower()
-                    else False,
-                    # TODO: This needs to be determined at scraper level ^.
                     restrictions=None,
                     # TODO: Temporary hardcode, needs restrictions support at scraper level.
-                    instructional_method=c_d_r.instructional_method_description,
-                    is_open=c_d_r.open_section,
-                    wait_filled=c_d_r.wait_count,
-                    wait_capacity=c_d_r.wait_capacity,
+                    current_enrollment=c_d_r.current_enrollment,
+                    maximum_enrollment=c_d_r.maximum_enrollment,
+                    current_waitlist=c_d_r.current_waitlist,
+                    maximum_waitlist=c_d_r.maximum_waitlist,
+                    delivery=c_d_r.delivery,
+                    is_virtual=True if "virtual" in c_d_r.delivery.lower() else False,
+                    # TODO: This needs to be determined at scraper level ^.
+                    campus_description=c_d_r.campus_description,
                     instructors=faculty_list,
+                    credits=c_d_r.credit_hours,
                 )
             )
     return [merge_course_meeting_occurrences(c) for c in course_list]

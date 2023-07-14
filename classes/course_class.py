@@ -17,37 +17,43 @@ class Course(BaseModel):
     """Course class defines a single general course identified by a CRN."""
 
     course_code: str  # Aka course code, example: "BIOL1020U".
-    subject: Optional[str]  # Aka subject, example: "BIOL".
-    subject_long: Optional[str]  # Aka subject long, example: "Biology".
+    title: str  # Aka course title, example: "Biology II".
+
     crn: int  # Aka course reference/registration number: 12345.
     class_type: str  # Aka class type, example: "Lecture".
-    title: str  # Aka course title, example: "Biology II".
     section: Optional[str]  # Aka sequence number, example: "001".
+
+    subject: Optional[str]  # Aka subject, example: "BIOL".
+    subject_long: Optional[str]  # Aka subject long, example: "Biology".
+
     class_time: List[Meeting] = []  # Class times represented as a list of Meetings.
-    is_linked: bool  # Aka is section linked.
+
+    is_open_section: Optional[bool]  # Non-essential (api forwarded) data.
+    is_section_linked: bool  # Aka is section linked.
     link_tag: Optional[str]  # Aka link identifier, example: "A1".
-    seats_filled: int  # Aka enrollment.
-    max_capacity: int  # Aka maximum enrollment.
-    seats_available: Optional[
-        int
-    ]  # Defaults if not provided. Aka enrollment seats available.
+
+    restrictions: Optional[dict[str, str | list[str]]]  # JSON data for enrollment restrictions.
+
+    current_enrollment: int  # Aka enrollment.
+    maximum_enrollment: int  # Aka maximum enrollment.
+    available_enrollment: Optional[int]  # Defaults if not provided. Aka enrollment seats available.
+
+    current_waitlist: Optional[int]  # Aka wait-list count. Non-essential (api forwarded) data.
+    maximum_waitlist: Optional[int]  # Aka wait-list capacity. Non-essential (api forwarded) data.
+
+    delivery: Optional[str]  # Non-essential (api forwarded) data.
     is_virtual: bool
-    restrictions: Optional[dict]  # JSON data for class registration restrictions.
-    
-    is_open: Optional[bool]  # Non-essential (api forwarded) data.
-    wait_filled: Optional[
-        int
-    ]  # Aka wait-list count. Non-essential (api forwarded) data.
-    wait_capacity: Optional[
-        int
-    ]  # Aka wait-list capacity. Non-essential (api forwarded) data.
+
+    campus_description: Optional[str]  # General campus location
     instructors: List[Instructor] = []  # Aka list of Instructor.
 
-    @validator("seats_available", always=True)
-    def confirm_seats_available(cls, v, values):
+    credits: Optional[int]
+
+    @validator("available_enrollment", always=True)
+    def confirm_available_enrollment(cls, v, values):
         if not isinstance(v, int):
-            sf = values.get("seats_filled")
-            mc = values.get("max_capacity")
+            sf = values.get("current_enrollment")
+            mc = values.get("maximum_enrollment")
             return mc - sf if mc - sf >= 0 else 0
         return v
 
@@ -94,6 +100,19 @@ class Course(BaseModel):
             else "N/A"
         )
 
+    def unified_name(self) -> str:
+        return f"{self.title} | {self.class_type} ({self.course_code})"
+
+    def unified_description(self) -> str:
+        return (
+            rf"CRN: {self.crn} | Section: {self.section} | Class type: {self.class_type}"
+            rf"{' | Requires linked classes' if self.is_section_linked else ''}\n"
+            rf"Instructor{'s' if len(self.instructors) > 1 else ''}: "
+            rf"{self.faculty_instructors_text()}\n"
+            rf"Delivery: {self.delivery} | Campus: {self.campus_description}\n"
+            rf"{self.current_enrollment}/{self.maximum_enrollment} students enrolled"
+        )
+
 
 def schedule_time_conflicts(course_list: list[Course]) -> bool:
     """Determines if a list of Course objects (schedule) is has time conflicts.
@@ -115,23 +134,25 @@ def schedule_time_conflicts(course_list: list[Course]) -> bool:
 def merge_course_meeting_occurrences(course: Course) -> Course:
     return Course(
         course_code=course.course_code,
-        subject=course.subject,
-        subject_long=course.subject_long,
+        title=course.title,
         crn=course.crn,
         class_type=course.class_type,
-        title=course.title,
         section=course.section,
+        subject=course.subject,
+        subject_long=course.subject_long,
         class_time=merged_meeting_occurrences(course.class_time),
-        is_linked=course.is_linked,
+        is_open_section=course.is_open_section,
+        is_section_linked=course.is_section_linked,
         link_tag=course.link_tag,
-        seats_filled=course.seats_filled,
-        max_capacity=course.max_capacity,
-        seats_available=course.seats_available,
-        is_virtual=course.is_virtual,
         restrictions=course.restrictions,
-        is_open=course.is_open,
-        wait_filled=course.wait_filled,
-        wait_capacity=course.wait_capacity,
+        current_enrollment=course.current_enrollment,
+        maximum_enrollment=course.maximum_enrollment,
+        available_enrollment=course.available_enrollment,
+        current_waitlist=course.current_waitlist,
+        maximum_waitlist=course.maximum_waitlist,
+        delivery=course.delivery,
+        is_virtual=course.is_virtual,
+        campus_description=course.campus_description,
         instructors=course.instructors,
     )
 
@@ -153,9 +174,9 @@ def get_min_students_of_courses(courses: list[Course]) -> int:
     max_by_class_type = {}  # Max students by course and class type (comp_key).
     for c in courses:
         if c.get_comp_key() in max_by_class_type.keys():
-            max_by_class_type[c.get_comp_key()] += c.seats_filled
+            max_by_class_type[c.get_comp_key()] += c.current_enrollment
         else:
-            max_by_class_type[c.get_comp_key()] = c.seats_filled
+            max_by_class_type[c.get_comp_key()] = c.current_enrollment
     return min(max_by_class_type.values())
 
 
@@ -203,19 +224,10 @@ def course_to_extended_meetings(course_list: list[Course]) -> list[ExtendedMeeti
                 occurrence_limit=mt.occurrence_limit,
                 days_of_week=mt.days_of_week,
                 location="VIRTUAL" if c.is_virtual else str(mt.location),
-                name=f"{c.title} {c.class_type[:3].upper()} ({c.course_code})",
-                description=(
-                    rf"Instructor{'s' if len(c.instructors) > 1 else ''}: "
-                    rf"{c.faculty_instructors_text()}\n"
-                    rf"CRN: {c.crn}\n"
-                    rf"Section: {c.section}\n"
-                    rf"Seats filled: {c.seats_filled}\n"
-                    rf"Max capacity: {c.max_capacity}\n"
-                    rf"Seats available: {c.seats_available}\n"
-                    rf"Has linked classes: {c.is_linked}"
-                ),
-                seats_filled=c.seats_filled,
-                max_capacity=c.max_capacity,
+                name=c.unified_name(),
+                description=c.unified_description(),
+                seats_filled=c.current_enrollment,
+                max_capacity=c.maximum_enrollment,
                 is_virtual=c.is_virtual,
             )
             for mt in c.class_time
