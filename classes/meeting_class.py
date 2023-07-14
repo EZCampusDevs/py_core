@@ -22,8 +22,8 @@ from dateutil.rrule import (
 )
 from pydantic import BaseModel, root_validator, validator
 
-import constants
-import general
+from .. import constants
+from .. import general
 
 DAYS = {0: "MO", 1: "TU", 2: "WE", 3: "TH", 4: "FR", 5: "SA", 6: "SU"}
 
