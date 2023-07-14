@@ -34,6 +34,12 @@ class Instructor(BaseModel):
             raise ValueError(f"With <int> expected 0 <= rating <= 100, got rating={v}")
         return v
 
+    @validator("rating")
+    def accurate_rating_correction(cls, v):
+        if v == 0:
+            return None
+        return v
+
     @validator("name")
     def instructor_name_cleanup(cls, v):
         return name_cleanup(v)
