@@ -1,10 +1,12 @@
-"""Constants related to program computation."""
+"""
+Constants related to program computation.
+"""
 
 BRAND = "fastapi_backend"
 
 # Days of the week representation.
-# 2 has a value of 0010 in binary, so it would be Tuesday.
-# 3 has a value of 0011 in binary, so it would be Monday, Tuesday
+#  2 has a value of 0010 in binary, so it would be Tuesday.
+#  3 has a value of 0011 in binary, so it would be Monday, Tuesday.
 MONDAY = 0b000_0001
 TUESDAY = 0b000_0010
 WEDNESDAY = 0b000_0100
@@ -32,7 +34,7 @@ NAME_MIN_LEN = 2
 NAME_MAX_LEN = 50
 DESC_MAX_LEN = 150
 PROGRAM_MAX_LEN = 255
-YEAR_OF_STUDY_MIN = 0  # 0 = Unspecified
+YEAR_OF_STUDY_MIN = 0  # 0 = Unspecified.
 YEAR_OF_STUDY_MAX = 8
 
 CUMULATIVE_PROGRAM_MAP_KEY_WORD = "CUMULATIVE"

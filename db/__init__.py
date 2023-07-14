@@ -3,8 +3,8 @@ import os
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 
-# it's very important you don't import Engine, Session, and Base directly because
-# the get modified at runtime, so you should use the functions below to access them
+# It's very important you don't import Engine, Session, and Base directly because the get modified
+#  at runtime, so you should use the functions below to access them.
 from . import db_globals as DG
 from . import db_tables as DT
 

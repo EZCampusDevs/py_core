@@ -1,3 +1,7 @@
+"""
+General validator code.
+"""
+
 import re
 
 

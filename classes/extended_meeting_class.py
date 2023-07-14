@@ -1,7 +1,8 @@
-"""ExpandedMeeting class module.
+"""
+ExpandedMeeting class module.
 
-The ExpandedMeetingLogical class and by extension the module's functions represent universal custom calendar event
-structures and data values.
+The ExpandedMeetingLogical class and by extension the module's functions represent universal custom
+ calendar event structures and data values.
 """
 
 from pydantic import root_validator, validator
@@ -41,8 +42,8 @@ class ExtendedMeeting(Meeting):
             raise ValueError("Expected max_capacity >= -1 and != 0")
         # if max_capacity != -1 and (seats_filled > max_capacity):
         #     raise ValueError("seats_filled has passed the max_capacity")
-        # TODO(Daniel): This is commented out for now. There are instances of courses where people are allowed to be
-        #  registered even though it is past the maximum capacity.
+        # TODO(Daniel): This is commented out for now. There are instances of courses where people
+        #  are allowed to be registered even though it is past the maximum capacity.
         return values
 
     @validator("colour")

@@ -44,9 +44,7 @@ class ProgramMap(BaseModel):
     is_abstracted: bool
     school_short_name: str
     name: str
-    manifest_list: list[
-        str
-    ]  # List of program map names for is_abstracted, else list of course codes.
+    manifest_list: list[str]  # List of pmap.names for is_abstracted, else list of course codes.
     year: Optional[int]  # Probably None for is_abstracted.
     semester: Optional[int]  # Probably None for is_abstracted.
     semester_keyword: str
@@ -73,9 +71,7 @@ class ProgramMap(BaseModel):
             if total_years < 0:
                 raise ValueError(f"Expected total_years={total_years} >= 0")
             if total_semesters_count < 0:
-                raise ValueError(
-                    f"Expected total_semesters_count={total_semesters_count} >= 0"
-                )
+                raise ValueError(f"Expected total_semesters_count={total_semesters_count} >= 0")
             if year > total_years:
                 raise ValueError(f"Expected year={year} <= total_years={total_years}")
             if semester_count > total_semesters_count:
@@ -84,15 +80,11 @@ class ProgramMap(BaseModel):
                     f"{total_semesters_count}"
                 )
             if semester > semester_count:
-                raise ValueError(
-                    f"Expected semester={semester} <= semester_count={semester_count}"
-                )
+                raise ValueError(f"Expected semester={semester} <= semester_count={semester_count}")
         else:  # is_abstracted.
             category = values.get("category")
             if CUMULATIVE_PROGRAM_MAP_KEY_WORD not in category:
-                raise ValueError(
-                    f'Expected "{CUMULATIVE_PROGRAM_MAP_KEY_WORD}" to be in category'
-                )
+                raise ValueError(f'Expected "{CUMULATIVE_PROGRAM_MAP_KEY_WORD}" to be in category')
         return values
 
     def is_cumulative(self) -> bool:
@@ -133,12 +125,8 @@ class ProgramMap(BaseModel):
             manifest_list=simple.manifest_list,
             year=simple.year if '"year"' in json_str else None,
             semester=simple.semester if '"semester"' in json_str else None,
-            semester_keyword=simple.semester_keyword
-            if '"semester_keyword"' in json_str
-            else None,
-            semester_count=simple.semester_count
-            if '"semester_count"' in json_str
-            else None,
+            semester_keyword=simple.semester_keyword if '"semester_keyword"' in json_str else None,
+            semester_count=simple.semester_count if '"semester_count"' in json_str else None,
             total_years=simple.total_years if '"total_years"' in json_str else None,
             total_semesters_count=simple.total_semesters_count
             if '"total_semesters_count"' in json_str

@@ -1,4 +1,5 @@
-"""Meeting class module.
+"""
+Meeting class module.
 
 The Meeting class is also the superclass of ExtendedMeeting.
 """
@@ -43,8 +44,8 @@ class Meeting(BaseModel):
     # If occurrence_unit is None, occurrence_limit must be None.
     days_of_week: int = None  # Weekdays as 1 int value.
     # NOTE: Functionally speaking, days_of_week really only affects Meetings with the occurrence
-    # unit of weeks. This is corrected to None by a root_validator if days_of_week is specified,
-    # but not needed.
+    #  unit of weeks. This is corrected to None by a root_validator if days_of_week is specified,
+    #  but not needed.
     location: str = ""
 
     @root_validator()
@@ -436,9 +437,9 @@ def meetings_conflict(
 
     Notes:
         The datetime returned in the tuple if the parameter detailed is True is propagated from
-        meeting_conflict(). Due to the sorting and the datetime standard weekday values used in
-        this function, the datetime returned will be for the first conflict found.
-        (Monday -> Sunday, early -> later time).
+         meeting_conflict(). Due to the sorting and the datetime standard weekday values used in
+         this function, the datetime returned will be for the first conflict found.
+         (Monday -> Sunday, early -> later time).
 
     Returns:
         True if a list of Meetings has a time conflict(s), False if no time conflict(s) exist.
@@ -533,7 +534,7 @@ def forward_weekday_target(target_weekday_int: int, base_date: date) -> date:
     target_delta_int = target_weekday_int - base_date.weekday()  # Calculate the shift required.
     target_delta_int += 7 if target_delta_int < 0 else 0
     # If your  target is Monday and the start_time = Wednesday, target_delta_int shifts to the next
-    # future Monday (Not going backwards to a past Monday).
+    #  future Monday (Not going backwards to a past Monday).
     return base_date + timedelta(days=target_delta_int)  # Shifted date.
 
 
@@ -559,5 +560,5 @@ def backward_target_weekday(target_weekday_int: int, base_date: date) -> date:
     target_delta_int = target_weekday_int - base_date.weekday()  # Calculate the shift required.
     target_delta_int -= 7 if target_delta_int > 0 else 0
     # If your target is Monday and the start_time = Wednesday, target_delta_int shifts to the
-    # previous past Monday (Not going forward to the future Monday).
+    #  previous past Monday (Not going forward to the future Monday).
     return base_date + timedelta(days=target_delta_int)  # Shifted date.

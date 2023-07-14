@@ -1,4 +1,6 @@
-"""General computation code."""
+"""
+General computation code.
+"""
 
 from . import constants
 

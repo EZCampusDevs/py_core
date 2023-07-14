@@ -1,6 +1,8 @@
-"""Instructor class module.
+"""
+Instructor class module.
 
-The Instructor class and by extension the module's functions represent universal faculty structures and data values.
+The Instructor class and by extension the module's functions represent universal faculty structures
+ and data values.
 """
 
 import re

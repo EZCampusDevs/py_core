@@ -1,3 +1,7 @@
+"""
+Course related DML abstraction.
+"""
+
 from datetime import datetime
 
 from sqlalchemy import (

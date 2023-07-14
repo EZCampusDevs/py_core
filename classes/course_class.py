@@ -1,7 +1,8 @@
-"""Course class module.
+"""
+Course class module.
 
 The Course class and by extension the module's functions represent universal course structures and
-data values.
+ data values.
 """
 
 from typing import Optional, List
@@ -76,7 +77,7 @@ class Course(BaseModel):
 
         Notes:
             Potential logic error due to bad data in of self.date_start and self.date_end. See:
-            Meeting.num_actual_meetings() documentation.
+             Meeting.num_actual_meetings() documentation.
         """
         return sum([mt.num_of_occurrences() for mt in self.class_time])
 
@@ -192,11 +193,10 @@ def merge_all_restrictions(course_list: list[Course]) -> dict:
     all_restrictions = {}
     for c in course_list:
         for r_type, r_list in c.restrictions.items():
-            if r_type not in list(all_restrictions.keys()):  # Type not added
-                # as a key to the total dict yet.
-                all_restrictions[r_type] = r_list  # Add new type as a key and
-                # value is the entire sub list to the total dict.
-            else:  # Type already exists as an r_type on the total dict.
+            if r_type not in list(all_restrictions.keys()):  # Type not added as a key yet.
+                all_restrictions[r_type] = r_list
+                # Add new type as a key and value is the entire sub list to the total dict.
+            else:  # Type already exists as an r_type.
                 all_restrictions[r_type] = list(set(all_restrictions[r_type] + r_list))
                 # Add missing restrictions in the value's sub list.
     return all_restrictions

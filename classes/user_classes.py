@@ -89,10 +89,7 @@ def valid_username(username: str) -> bool:
 
 
 def valid_email(email: str) -> bool:
-    """Check if email is valid.
-
-     Ensure valid type & length (Email & Password field have same # of
-     available chars)
+    """Ensure valid type & length (Email & Password field have same # of available chars).
 
     Args:
         email: Email address
@@ -100,11 +97,7 @@ def valid_email(email: str) -> bool:
     Returns:
         Boolean defining a True = valid email, False = invalid email.
     """
-    if (
-        not isinstance(email, str)
-        or len(email) > EMAIL_MAX_LEN
-        or len(email) < EMAIL_MIN_LEN
-    ):
+    if not isinstance(email, str) or len(email) > EMAIL_MAX_LEN or len(email) < EMAIL_MIN_LEN:
         return False
     """
     Regular Expression validate email strings:
@@ -148,11 +141,7 @@ def hash_password(password: str) -> str:
 
 
 def valid_name(name: str) -> bool:
-    if (
-        not isinstance(name, str)
-        or len(name) < NAME_MIN_LEN
-        or len(name) > NAME_MAX_LEN
-    ):
+    if not isinstance(name, str) or len(name) < NAME_MIN_LEN or len(name) > NAME_MAX_LEN:
         return False
     return True
 
@@ -235,9 +224,7 @@ class CreateUser(BaseModel):
     username: str
     email: str
     password: str
-    name: Optional[
-        str
-    ]  # If name is not entered it is defaulted later by pydantic name validator.
+    name: Optional[str]  # If name is not entered it is defaulted later by pydantic name validator.
     description: Optional[str]
     school_short_name: Optional[str]
     program: Optional[str]
@@ -276,9 +263,7 @@ class CreateUser(BaseModel):
     @validator("name", always=True)  # https://stackoverflow.com/a/71001357
     def validate_name(cls, v, values):
         if not isinstance(v, str):
-            return (
-                v or values["username"]
-            )  # Default name to match username if name is unspecified.
+            return v or values["username"]  # Default name to match username if name is unspecified.
         elif isinstance(v, str) and not valid_name(v):
             raise API_406_NAME_INVALID
         return v
@@ -411,7 +396,7 @@ def edit_user_from_basic_user(basic_user: BasicUser, password: str) -> EditUser:
 
     Notes:
         Warning! The basic user uses a hashed password. Translated EditUser will have this hashed
-        password. The EditUser password should be updated after.
+         password. The EditUser password should be updated after.
 
     Returns:
         Converted EditUser.
