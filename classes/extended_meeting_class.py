@@ -51,3 +51,6 @@ class ExtendedMeeting(Meeting):
         if not is_valid_hexadecimal_colour(v):
             raise ValueError("Invalid hexadecimal colour code")
         return v
+
+    def raw_new_line_description(self) -> str:
+        return self.description.replace("\n", r"\n")

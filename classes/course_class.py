@@ -106,12 +106,12 @@ class Course(BaseModel):
 
     def unified_description(self) -> str:
         return (
-            rf"{self.course_code} {self.title} ({self.class_type})\n"
-            rf"CRN: {self.crn} | Section: {self.section}\n"
-            rf"Instructor{'s' if len(self.instructors) > 1 else ''}: "
-            rf"{self.faculty_instructors_text()}\n"
-            rf"Delivery: {self.delivery} | Campus: {self.campus_description}\n"
-            rf"{self.current_enrollment} / {self.maximum_enrollment} students enrolled"
+            f"{self.course_code} {self.title} ({self.class_type})\n"
+            f"CRN: {self.crn} | Section: {self.section}\n"
+            f"Instructor{'s' if len(self.instructors) > 1 else ''}: "
+            f"{self.faculty_instructors_text()}\n"
+            f"Delivery: {self.delivery} | Campus: {self.campus_description}\n"
+            f"{self.current_enrollment} / {self.maximum_enrollment} students enrolled"
         )
 
 
