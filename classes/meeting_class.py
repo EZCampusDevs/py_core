@@ -5,7 +5,7 @@ The Meeting class is also the superclass of ExtendedMeeting.
 """
 
 import json
-from datetime import date, time, datetime, timedelta
+from datetime import date, time, datetime, timedelta, tzinfo
 
 from dateutil.rrule import (
     rrule,
@@ -22,6 +22,7 @@ from dateutil.rrule import (
     SU,
 )
 from pydantic import BaseModel, root_validator, validator
+from pytz import timezone, all_timezones
 
 from .. import constants
 from .. import general
@@ -37,6 +38,7 @@ class Meeting(BaseModel):
     # In the event times are not specified, assume corresponding min/max.
     date_start: date  # Meeting start date window.
     date_end: date  # Meeting end date window.
+    timezone_str: str  # IANA standard timezone string.
     occurrence_unit: None | str = None
     occurrence_interval: None | int = None
     # If occurrence_unit is None, occurrence_interval must be None.
@@ -63,6 +65,14 @@ class Meeting(BaseModel):
         if not (date_start <= date_end):
             raise ValueError(f"Expected date_start={date_start} <= date_end={date_end}")
         return values
+
+    @validator("timezone_str")
+    def verify_timezone_str(cls, v):
+        if v not in all_timezones:
+            raise ValueError(
+                f"timezone_str={v} is not allowed. Allowed units defined by: pytz.all_timezones"
+            )
+        return v
 
     @validator("occurrence_unit")
     def verify_occurrence_unit(cls, v):
@@ -145,11 +155,14 @@ class Meeting(BaseModel):
             # raise ValueError(f"occurrence_unit={occurrence_unit}, expected days_of_week={None}, got {days_of_week}")
         return values
 
+    def get_timezone(self) -> tzinfo:
+        return timezone(self.timezone_str)
+
     def dt_start(self) -> datetime:
-        return datetime.combine(self.date_start, self.time_start)
+        return datetime.combine(self.date_start, self.time_start, tzinfo=self.get_timezone())
 
     def dt_end(self) -> datetime:
-        return datetime.combine(self.date_end, self.time_end)
+        return datetime.combine(self.date_end, self.time_end, tzinfo=self.get_timezone())
 
     def decode_days_of_week(self) -> dict[str, bool]:
         return general.decode_days_of_week(self.days_of_week)
@@ -162,14 +175,18 @@ class Meeting(BaseModel):
             if isinstance(self.occurrence_limit, int):
                 return rrule(
                     DAILY,
-                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    dtstart=datetime.combine(
+                        self.date_start, self.time_start, tzinfo=self.get_timezone()
+                    ),
                     count=self.occurrence_limit,
                     interval=self.occurrence_interval,
                 )
             else:  # isinstance(self.occurrence_limit, date):
                 return rrule(
                     DAILY,
-                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    dtstart=datetime.combine(
+                        self.date_start, self.time_start, tzinfo=self.get_timezone()
+                    ),
                     until=datetime.combine(self.occurrence_limit, self.time_end),
                     interval=self.occurrence_interval,
                 )
@@ -178,7 +195,9 @@ class Meeting(BaseModel):
             if isinstance(self.occurrence_limit, int):
                 return rrule(
                     WEEKLY,
-                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    dtstart=datetime.combine(
+                        self.date_start, self.time_start, tzinfo=self.get_timezone()
+                    ),
                     count=self.occurrence_limit,
                     interval=self.occurrence_interval,
                     byweekday=[by_weekday[w_i] for w_i in self.decode_weekday_ints()],
@@ -186,7 +205,9 @@ class Meeting(BaseModel):
             else:  # isinstance(self.occurrence_limit, date):
                 return rrule(
                     WEEKLY,
-                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    dtstart=datetime.combine(
+                        self.date_start, self.time_start, tzinfo=self.get_timezone()
+                    ),
                     until=datetime.combine(self.occurrence_limit, self.time_end),
                     interval=self.occurrence_interval,
                     byweekday=[by_weekday[w_i] for w_i in self.decode_weekday_ints()],
@@ -206,7 +227,9 @@ class Meeting(BaseModel):
             if isinstance(self.occurrence_limit, int):
                 return rrule(
                     MONTHLY,
-                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    dtstart=datetime.combine(
+                        self.date_start, self.time_start, tzinfo=self.get_timezone()
+                    ),
                     count=self.occurrence_limit,
                     interval=self.occurrence_interval,
                     byweekday=by_weekday[self.date_start.weekday()],
@@ -214,7 +237,9 @@ class Meeting(BaseModel):
             else:  # isinstance(self.occurrence_limit, date):
                 return rrule(
                     MONTHLY,
-                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    dtstart=datetime.combine(
+                        self.date_start, self.time_start, tzinfo=self.get_timezone()
+                    ),
                     until=datetime.combine(self.occurrence_limit, self.time_end),
                     interval=self.occurrence_interval,
                     byweekday=by_weekday[self.date_start.weekday()],
@@ -223,14 +248,18 @@ class Meeting(BaseModel):
             if isinstance(self.occurrence_limit, int):
                 return rrule(
                     MONTHLY,
-                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    dtstart=datetime.combine(
+                        self.date_start, self.time_start, tzinfo=self.get_timezone()
+                    ),
                     count=self.occurrence_limit,
                     interval=self.occurrence_interval,
                 )
             else:  # isinstance(self.occurrence_limit, date):
                 return rrule(
                     MONTHLY,
-                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    dtstart=datetime.combine(
+                        self.date_start, self.time_start, tzinfo=self.get_timezone()
+                    ),
                     until=datetime.combine(self.occurrence_limit, self.time_end),
                     interval=self.occurrence_interval,
                 )
@@ -238,14 +267,18 @@ class Meeting(BaseModel):
             if isinstance(self.occurrence_limit, int):
                 return rrule(
                     YEARLY,
-                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    dtstart=datetime.combine(
+                        self.date_start, self.time_start, tzinfo=self.get_timezone()
+                    ),
                     count=self.occurrence_limit,
                     interval=self.occurrence_interval,
                 )
             else:  # isinstance(self.occurrence_limit, date):
                 return rrule(
                     YEARLY,
-                    dtstart=datetime.combine(self.date_start, self.time_start),
+                    dtstart=datetime.combine(
+                        self.date_start, self.time_start, tzinfo=self.get_timezone()
+                    ),
                     until=datetime.combine(self.occurrence_limit, self.time_end),
                     interval=self.occurrence_interval,
                 )
@@ -254,9 +287,9 @@ class Meeting(BaseModel):
 
     def get_ics_rrule_str(self) -> str | None:
         result = (
-            f"DTSTART;TZID=America/Toronto:"
+            f"DTSTART;TZID={self.timezone_str}:"
             f"{datetime.combine(self.date_start, self.time_start).strftime('%Y%m%dT%H%M%S')}\n"
-            f"DTEND;TZID=America/Toronto:"
+            f"DTEND;TZID={self.timezone_str}:"
             f"{datetime.combine(self.date_end, self.time_end).strftime('%Y%m%dT%H%M%S')}"
         )
         if self.occurrence_unit is not None:
@@ -324,6 +357,9 @@ def round_to_hour(dt_obj: time | datetime) -> time | datetime:
     Examples:
         >>> round_to_hour(datetime(2022, 9, 1, 10, 30))
         datetime.datetime(2022, 9, 1, 11, 0)
+        >>> from pytz import timezone
+        >>> round_to_hour(datetime(2022, 9, 1, 10, 30, tzinfo=timezone("America/Toronto")))
+        datetime.datetime(2022, 9, 1, 11, 0, tzinfo=<DstTzInfo 'America/Toronto' LMT-1 day, 18:42:00 STD>)
         >>> round_to_hour(time(10, 30))
         datetime.time(11, 0)
         >>> round_to_hour(time(10, 29))
@@ -359,6 +395,7 @@ def to_single_occurrences(mt: Meeting) -> list[Meeting]:
             time_end=mt.time_end,
             date_start=d,
             date_end=(d + timedelta(days=(mt.date_end - mt.date_start).days)),
+            timezone_str=mt.timezone_str,
             occurrence_unit=None,
             occurrence_interval=None,
             occurrence_limit=None,
@@ -402,8 +439,10 @@ def merged_meeting_occurrences(mt_list: list[Meeting]) -> list[Meeting]:
 
 
 def merge_weekly_occurrences(mt_1: Meeting, mt_2: Meeting) -> list[Meeting]:
-    if mt_1.occurrence_unit == mt_2.occurrence_unit == constants.OU_WEEKS and (
-        mt_1.time_start == mt_2.time_start
+    if (
+        mt_1.occurrence_unit == mt_2.occurrence_unit == constants.OU_WEEKS
+        and mt_1.timezone_str == mt_2.timezone_str
+        and mt_1.time_start == mt_2.time_start
         and mt_1.time_end == mt_2.time_end
         and mt_1.occurrence_interval == mt_2.occurrence_interval
         and mt_1.occurrence_limit == mt_2.occurrence_limit
@@ -412,10 +451,11 @@ def merge_weekly_occurrences(mt_1: Meeting, mt_2: Meeting) -> list[Meeting]:
         weekday_ints = list(set(mt_1.decode_weekday_ints() + mt_2.decode_weekday_ints()))
         return [
             Meeting(
-                time_start=mt_1.time_start,
+                time_start=mt_1.time_start,  # Arbitrary, using mt_1 in this case.
                 time_end=mt_1.time_end,
                 date_start=min([mt_1.date_start, mt_2.date_start]),
                 date_end=min([mt_1.date_end, mt_2.date_end]),
+                timezone_str=mt_1.timezone_str,
                 occurrence_unit=mt_1.occurrence_unit,
                 occurrence_interval=mt_1.occurrence_interval,
                 occurrence_limit=mt_1.occurrence_limit,
