@@ -32,6 +32,7 @@ class TBL_School(DG.Base):
     school_id = Column(Integer, primary_key=True)
     school_unique_value = Column(VARCHAR(128))
     subdomain = Column(VARCHAR(64))
+    timezone = Column(VARCHAR(64))
 
 
 class TBL_Term(DG.Base):
