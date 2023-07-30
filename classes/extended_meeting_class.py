@@ -5,6 +5,8 @@ The ExpandedMeetingLogical class and by extension the module's functions represe
  calendar event structures and data values.
 """
 
+from datetime import timedelta
+
 from pydantic import root_validator, validator
 
 from .meeting_class import Meeting
@@ -54,3 +56,35 @@ class ExtendedMeeting(Meeting):
 
     def raw_new_line_description(self) -> str:
         return self.description.replace("\n", r"\n")
+
+
+def to_single_occurrences(ex_mt: ExtendedMeeting) -> list[ExtendedMeeting]:
+    """Breaks reoccurring meeting into individual non-reoccurring (single occurrence) Meetings.
+
+    Notes:
+        This function is based off the same function in the Meeting class module.
+    """
+    if ex_mt.occurrence_unit is None:
+        return [ex_mt]
+    start_dates = ex_mt.all_start_dates()
+    return [
+        ExtendedMeeting(
+            time_start=ex_mt.time_start,
+            time_end=ex_mt.time_end,
+            date_start=d,
+            date_end=(d + timedelta(days=(ex_mt.date_end - ex_mt.date_start).days)),
+            timezone_str=ex_mt.timezone_str,
+            occurrence_unit=None,
+            occurrence_interval=None,
+            occurrence_limit=None,
+            days_of_week=None,
+            location=ex_mt.location,
+            name=ex_mt.name,
+            description=ex_mt.description,
+            seats_filled=ex_mt.seats_filled,
+            max_capacity=ex_mt.max_capacity,
+            is_virtual=ex_mt.is_virtual,
+            colour=ex_mt.colour,
+        )
+        for d in start_dates
+    ]
