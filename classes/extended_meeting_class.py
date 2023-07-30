@@ -50,7 +50,7 @@ class ExtendedMeeting(Meeting):
 
     @validator("colour")
     def verify_hexadecimal_colour_code(cls, v):
-        if not is_valid_hexadecimal_colour(v):
+        if v is not None and not is_valid_hexadecimal_colour(v):
             raise ValueError("Invalid hexadecimal colour code")
         return v
 
