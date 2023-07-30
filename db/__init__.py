@@ -1,6 +1,7 @@
 import os
 
 from sqlalchemy import create_engine, event
+from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm import sessionmaker
 
 # It's very important you don't import Engine, Session, and Base directly because the get modified
@@ -55,6 +56,13 @@ def init_database(
     DG.Base.metadata.bind = DG.Engine
 
     if create:
-        DT.create_all()
+        try:
+            DT.create_all()
+        except DatabaseError as e:
+            msg = e.args[0]
+            if "Can't connect to MySQL server on" in msg:
+                raise RuntimeWarning(f"{msg} <--- Daniel: Check (local / ssh) connection to DB")
+            else:
+                raise e
 
     DG.Database_Initialized = True

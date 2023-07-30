@@ -54,9 +54,9 @@ def get_courses_via(
     except AttributeError as e:
         msg = e.args[0]
         if "'NoneType' object has no attribute 'begin'" in msg:
-            raise AttributeError(
+            raise RuntimeWarning(
                 f"{msg} <--- Daniel: Check (local / ssh) connection to DB, possible missing "
-                f"init_database() call via 'from py_core.db import init_database'."
+                f"init_database() call via 'from py_core.db import init_database'"
             )
         else:
             raise e
