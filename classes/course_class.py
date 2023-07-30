@@ -219,6 +219,7 @@ def course_to_extended_meetings(course_list: list[Course]) -> list[ExtendedMeeti
                 time_end=mt.time_end,
                 date_start=mt.date_start,
                 date_end=mt.date_end,
+                timezone_str=mt.timezone_str,
                 occurrence_unit=mt.occurrence_unit,
                 occurrence_interval=mt.occurrence_interval,
                 occurrence_limit=mt.occurrence_limit,
