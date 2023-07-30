@@ -187,7 +187,9 @@ class Meeting(BaseModel):
                     dtstart=datetime.combine(
                         self.date_start, self.time_start, tzinfo=self.get_timezone()
                     ),
-                    until=datetime.combine(self.occurrence_limit, self.time_end),
+                    until=datetime.combine(self.occurrence_limit, self.time_end).astimezone(
+                        timezone("UTC")
+                    ),  # rrule.until must be set to UTC timezone.
                     interval=self.occurrence_interval,
                 )
         elif self.occurrence_unit == constants.OU_WEEKS:
@@ -208,7 +210,9 @@ class Meeting(BaseModel):
                     dtstart=datetime.combine(
                         self.date_start, self.time_start, tzinfo=self.get_timezone()
                     ),
-                    until=datetime.combine(self.occurrence_limit, self.time_end),
+                    until=datetime.combine(self.occurrence_limit, self.time_end).astimezone(
+                        timezone("UTC")
+                    ),  # rrule.until must be set to UTC timezone.
                     interval=self.occurrence_interval,
                     byweekday=[by_weekday[w_i] for w_i in self.decode_weekday_ints()],
                 )
@@ -240,7 +244,9 @@ class Meeting(BaseModel):
                     dtstart=datetime.combine(
                         self.date_start, self.time_start, tzinfo=self.get_timezone()
                     ),
-                    until=datetime.combine(self.occurrence_limit, self.time_end),
+                    until=datetime.combine(self.occurrence_limit, self.time_end).astimezone(
+                        timezone("UTC")
+                    ),  # rrule.until must be set to UTC timezone.
                     interval=self.occurrence_interval,
                     byweekday=by_weekday[self.date_start.weekday()],
                 )
@@ -260,7 +266,9 @@ class Meeting(BaseModel):
                     dtstart=datetime.combine(
                         self.date_start, self.time_start, tzinfo=self.get_timezone()
                     ),
-                    until=datetime.combine(self.occurrence_limit, self.time_end),
+                    until=datetime.combine(self.occurrence_limit, self.time_end).astimezone(
+                        timezone("UTC")
+                    ),  # rrule.until must be set to UTC timezone.
                     interval=self.occurrence_interval,
                 )
         elif self.occurrence_unit == constants.OU_YEARS:
@@ -279,7 +287,9 @@ class Meeting(BaseModel):
                     dtstart=datetime.combine(
                         self.date_start, self.time_start, tzinfo=self.get_timezone()
                     ),
-                    until=datetime.combine(self.occurrence_limit, self.time_end),
+                    until=datetime.combine(self.occurrence_limit, self.time_end).astimezone(
+                        timezone("UTC")
+                    ),  # rrule.until must be set to UTC timezone.
                     interval=self.occurrence_interval,
                 )
         else:  # self.occurrence_unit is None:
