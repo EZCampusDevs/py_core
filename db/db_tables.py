@@ -23,6 +23,8 @@ class TBL_Scrape_History(DG.Base):
 
     scrape_id = Column(Integer, primary_key=True, autoincrement=True)
     scrape_time = Column(TIMESTAMP)
+    scrape_time_finished = Column(TIMESTAMP)
+    has_finished_scraping = Column(Boolean)
     has_been_indexed = Column(Boolean)
 
 
