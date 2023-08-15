@@ -32,6 +32,15 @@ def get_courses_via(
     course_data_id_list: list[int] | None = None,
     course_id_list: list[int] | None = None,
 ) -> list[Course]:
+    """Get a list of Course objects based on search parameters.
+
+    Args:
+        course_data_id_list: Individual Course (CRN) data ids.
+        course_id_list: Course (code) ids.
+
+    Returns:
+        List of Course objects based on search parameters.
+    """
     if (not course_data_id_list or course_data_id_list is None) and (
         not course_id_list or course_id_list is None
     ):
@@ -51,6 +60,40 @@ def get_courses_via(
                 course_id_list=course_id_list,
             )
             return [merge_course_meeting_occurrences(c) for c in course_list]
+    except AttributeError as e:
+        msg = e.args[0]
+        if "'NoneType' object has no attribute 'begin'" in msg:
+            raise RuntimeWarning(
+                f"{msg} <--- Daniel: Check (local / ssh) connection to DB, possible missing "
+                f"init_database() call via 'from py_core.db import init_database'"
+            )
+        else:
+            raise e
+    except Exception as e:
+        raise e
+
+
+def get_course_ids(course_codes: list[str], term_id: int) -> list[int]:
+    """Get a list of course ids based on a list of course codes.
+
+    Args:
+        term_id: Term id to define scope.
+        course_codes: List of course codes to look up.
+
+    Returns:
+        List of course ids.
+    """
+    session: SessionObj
+    try:
+        with DG.Session.begin() as session:
+            c_d_result = (
+                session.query(TBL_Course)
+                .filter(
+                    and_(TBL_Course.course_code.in_(course_codes), TBL_Course.term_id == term_id)
+                )
+                .all()
+            )
+            return [result.course_id for result in c_d_result]
     except AttributeError as e:
         msg = e.args[0]
         if "'NoneType' object has no attribute 'begin'" in msg:
