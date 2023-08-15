@@ -57,6 +57,16 @@ class ExtendedMeeting(Meeting):
     def raw_new_line_description(self) -> str:
         return self.description.replace("\n", r"\n")
 
+    def has_space(self) -> bool:
+        """Determine if an ExtendedMeeting still has space for people to join.
+
+        Returns:
+            True if empty seats remain, else False.
+        """
+        if self.max_capacity == -1 or (self.max_capacity - self.seats_filled > 0):
+            return True
+        return False
+
 
 def to_single_occurrences(ex_mt: ExtendedMeeting) -> list[ExtendedMeeting]:
     """Breaks reoccurring meeting into individual non-reoccurring (single occurrence) Meetings.
