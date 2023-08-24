@@ -2,6 +2,7 @@ import logging
 
 from sqlalchemy import (
     Date,
+    DateTime,
     Float,
     Column,
     Index,
@@ -12,8 +13,10 @@ from sqlalchemy import (
     VARCHAR,
     ForeignKey,
     Table,
+    Text, 
+    UniqueConstraint
 )
-from sqlalchemy import UniqueConstraint
+from sqlalchemy.sql import func
 
 from . import db_globals as DG
 
@@ -218,6 +221,37 @@ class TBL_Word_Course_Data(DG.Base):
     count = Column(Integer)
 
 
+
+
+class TBL_Report_Type(DG.Base):
+    __tablename__ = "tbl_report_type"
+    report_type_id = Column(Integer, primary_key=True, autoincrement=True)
+    report_type_name = Column(VARCHAR(128))
+    report_type_description = Column(VARCHAR(512))
+
+class TBL_Operating_System(DG.Base):
+    __tablename__ = "tbl_operating_system"
+    os_id = Column(Integer, primary_key=True, autoincrement=True)
+    os_name = Column(VARCHAR(128))
+
+class TBL_Browser(DG.Base):
+    __tablename__ = "tbl_browser"
+    browser_id = Column(Integer, primary_key=True, autoincrement=True)
+    browser_name = Column(VARCHAR(128))
+    browser_version = Column(VARCHAR(128))
+
+class TBL_Report(DG.Base):
+    __tablename__ = "tbl_report"
+    
+    report_id = Column(Integer, primary_key=True, autoincrement=True)
+    report_type = Column(Integer, ForeignKey(f"{TBL_Report_Type.__tablename__}.report_type_id"))
+    operating_system = Column(Integer, ForeignKey(f"{TBL_Operating_System.__tablename__}.os_id"))
+    browser_description = Column(Integer, ForeignKey(f"{TBL_Browser.__tablename__}.browser_id"))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    description = Column(Text)
+
+
+
 def create_all():
     DG.Base.metadata.create_all(DG.Engine)
 
@@ -239,6 +273,10 @@ def drop_all():
         TBL_Word.__tablename__,
         TBL_Word_Course_Data.__tablename__,
         TBL_Subject.__tablename__,
+        TBL_Browser.__tablename__,
+        TBL_Operating_System.__tablename__,
+        TBL_Report_Type.__tablename__,
+        TBL_Report.__tablename__
     ]
     for name in db_names:
         for name in db_names:
