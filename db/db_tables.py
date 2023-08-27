@@ -247,7 +247,7 @@ class TBL_Report(DG.Base):
     report_type = Column(Integer, ForeignKey(f"{TBL_Report_Type.__tablename__}.report_type_id"))
     operating_system = Column(Integer, ForeignKey(f"{TBL_Operating_System.__tablename__}.os_id"))
     browser_description = Column(Integer, ForeignKey(f"{TBL_Browser.__tablename__}.browser_id"))
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(TIMESTAMP, server_default=func.now())
     description = Column(Text)
 
 
