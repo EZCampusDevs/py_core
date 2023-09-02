@@ -98,8 +98,8 @@ def http_format(ex_mts: list[ExtendedMeeting]) -> list[dict]:
         "max_capacity": ex_mt.max_capacity,
         "is_virtual": ex_mt.is_virtual,
         "colour": ex_mt.colour,
-        "time_start": ex_mt.time_start,
-        "time_end": ex_mt.time_end,
+        "time_start": ex_mt.time_start.isoformat(),
+        "time_end": ex_mt.time_end.isoformat(),
         "rrulejs_str": (
                 ex_mt.get_ics_rrule_str()[: ex_mt.get_ics_rrule_str().index("DTEND;")]
                 + ex_mt.get_ics_rrule_str()[ex_mt.get_ics_rrule_str().index("DTEND;"):][
