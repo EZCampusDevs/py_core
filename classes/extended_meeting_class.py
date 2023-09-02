@@ -67,6 +67,47 @@ class ExtendedMeeting(Meeting):
             return True
         return False
 
+    def http_format(self) -> dict:
+        """Convert for HTTP return format."""
+        return {
+            "location": self.location,
+            "name": self.name,
+            "description": self.description,
+            "seats_filled": self.seats_filled,
+            "max_capacity": self.max_capacity,
+            "is_virtual": self.is_virtual,
+            "colour": self.colour,
+            "time_start": self.time_start,
+            "time_end": self.time_end,
+            "rrulejs_str": (
+                    self.get_ics_rrule_str()[: self.get_ics_rrule_str().index("DTEND;")]
+                    + self.get_ics_rrule_str()[self.get_ics_rrule_str().index("DTEND;"):][
+                      self.get_ics_rrule_str().index("\n") - 1:
+                      ]
+            ).replace("\nRRULE:", ";\nRRULE:"),
+        }
+
+
+def http_format(ex_mts: list[ExtendedMeeting]) -> list[dict]:
+    """Convert multiple for HTTP return format."""
+    return [{
+        "location": ex_mt.location,
+        "name": ex_mt.name,
+        "description": ex_mt.description,
+        "seats_filled": ex_mt.seats_filled,
+        "max_capacity": ex_mt.max_capacity,
+        "is_virtual": ex_mt.is_virtual,
+        "colour": ex_mt.colour,
+        "time_start": ex_mt.time_start,
+        "time_end": ex_mt.time_end,
+        "rrulejs_str": (
+                ex_mt.get_ics_rrule_str()[: ex_mt.get_ics_rrule_str().index("DTEND;")]
+                + ex_mt.get_ics_rrule_str()[ex_mt.get_ics_rrule_str().index("DTEND;"):][
+                  ex_mt.get_ics_rrule_str().index("\n") - 1:
+                  ]
+        ).replace("\nRRULE:", ";\nRRULE:"),
+    } for ex_mt in ex_mts]
+
 
 def to_single_occurrences(ex_mt: ExtendedMeeting) -> list[ExtendedMeeting]:
     """Breaks reoccurring meeting into individual non-reoccurring (single occurrence) Meetings.

@@ -152,7 +152,8 @@ class Meeting(BaseModel):
         elif days_of_week is not None:
             values["days_of_week"] = None
             # Alternative (error raising validation):
-            # raise ValueError(f"occurrence_unit={occurrence_unit}, expected days_of_week={None}, got {days_of_week}")
+            # raise ValueError(f"occurrence_unit={occurrence_unit}, expected days_of_week={None}, "
+            #                  f"got {days_of_week}")
         return values
 
     def get_timezone(self) -> tzinfo:
@@ -449,6 +450,7 @@ def merged_meeting_occurrences(mt_list: list[Meeting]) -> list[Meeting]:
 
 
 def merge_weekly_occurrences(mt_1: Meeting, mt_2: Meeting) -> list[Meeting]:
+    """Merge 2 Meeting events if their occurrence can logically be merged."""
     if (
         mt_1.occurrence_unit == mt_2.occurrence_unit == constants.OU_WEEKS
         and mt_1.timezone_str == mt_2.timezone_str
