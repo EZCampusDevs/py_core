@@ -1,21 +1,24 @@
 import logging
 import os
 import sys
+from fastapi import HTTPException, Request
 
 from . import constants
 
 __loggers__: set[str] = set()
 
 LOG_LEVEL_MAP = {
-    logging.DEBUG : "DEBUG", 
-    logging.INFO: "INFO", 
-    logging.WARN : "WARN", 
-    logging.WARNING : "WARNING",
-    logging.ERROR : "ERROR"
+    logging.DEBUG: "DEBUG",
+    logging.INFO: "INFO",
+    logging.WARN: "WARN",
+    logging.WARNING: "WARNING",
+    logging.ERROR: "ERROR"
 }
+
 
 def get_level_map_pretty():
     return ", ".join(f"{value}={key}" for key, value in LOG_LEVEL_MAP.items())
+
 
 def create_setup_logger(name: str = None, log_file: str = "", log_level=logging.DEBUG):
     """Creates a logger adding a stdout hook and a file hook (if log_file is given) and sets its
@@ -96,3 +99,7 @@ def add_unhandled_exception_hook(replace=False):
             sys.__excepthook__(exc_type, exc_value, exc_traceback)
 
     sys.excepthook = handle_unhandled_exception
+
+
+def log_endpoint(h: HTTPException, r: Request, msg: str = ""):
+    logging.info(f"{r.method} {r.scope['path']} {h.status_code} {msg}")
