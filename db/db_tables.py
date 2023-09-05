@@ -29,6 +29,8 @@ class TBL_Scrape_History(DG.Base):
     scrape_time_finished = Column(TIMESTAMP)
     has_finished_scraping = Column(Boolean)
     has_been_indexed = Column(Boolean)
+    
+    last_updated = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
 
 class TBL_School(DG.Base):
@@ -122,6 +124,8 @@ class TBL_Course_Data(DG.Base):
 
     # 001 / 002 / 003...; conerting to int so will need to pad 0 later if needed
     sequence_number = Column(VARCHAR(128))
+
+    last_updated = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
 
 class TBL_Course_Faculty(DG.Base):
@@ -247,7 +251,7 @@ class TBL_Report(DG.Base):
     report_type = Column(Integer, ForeignKey(f"{TBL_Report_Type.__tablename__}.report_type_id"))
     operating_system = Column(Integer, ForeignKey(f"{TBL_Operating_System.__tablename__}.os_id"))
     browser_description = Column(Integer, ForeignKey(f"{TBL_Browser.__tablename__}.browser_id"))
-    created_at = Column(TIMESTAMP, server_default=func.now())
+    created_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
     description = Column(Text)
 
 

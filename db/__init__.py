@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, event
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.session import Session as SessionObj
 
 # It's very important you don't import Engine, Session, and Base directly because the get modified
 #  at runtime, so you should use the functions below to access them.
