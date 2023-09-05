@@ -70,12 +70,12 @@ def init_database(
     db_pass: str = get_env_db_password(),
     db_directory: str = get_env_db_dir(),
     create: bool = True,
-    check_env: bool = True,
+    load_env: bool = True,
 ):
     if DG.Database_Initialized:
         raise Exception("Database engine already initialized")
 
-    if check_env:
+    if load_env:
         check_env()
 
     if db_directory:
