@@ -30,8 +30,6 @@ class TBL_Scrape_History(DG.Base):
     has_finished_scraping = Column(Boolean)
     has_been_indexed = Column(Boolean)
     
-    last_updated = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
-
 
 class TBL_School(DG.Base):
     __tablename__ = "tbl_school"
@@ -40,6 +38,7 @@ class TBL_School(DG.Base):
     school_unique_value = Column(VARCHAR(128))
     subdomain = Column(VARCHAR(64))
     timezone = Column(VARCHAR(64))
+    scrape_id_last = Column(Integer, ForeignKey(f"{TBL_Scrape_History.__tablename__}.scrape_id"))
 
 
 class TBL_Term(DG.Base):
@@ -125,7 +124,8 @@ class TBL_Course_Data(DG.Base):
     # 001 / 002 / 003...; conerting to int so will need to pad 0 later if needed
     sequence_number = Column(VARCHAR(128))
 
-    last_updated = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+    should_be_indexed = Column(Boolean)
+
 
 
 class TBL_Course_Faculty(DG.Base):
