@@ -13,8 +13,8 @@ from sqlalchemy import (
     VARCHAR,
     ForeignKey,
     Table,
-    Text, 
-    UniqueConstraint
+    Text,
+    UniqueConstraint,
 )
 from sqlalchemy.sql import func
 
@@ -29,7 +29,7 @@ class TBL_Scrape_History(DG.Base):
     scrape_time_finished = Column(TIMESTAMP)
     has_finished_scraping = Column(Boolean)
     has_been_indexed = Column(Boolean)
-    
+
 
 class TBL_School(DG.Base):
     __tablename__ = "tbl_school"
@@ -125,7 +125,6 @@ class TBL_Course_Data(DG.Base):
     sequence_number = Column(VARCHAR(128))
 
     should_be_indexed = Column(Boolean)
-
 
 
 class TBL_Course_Faculty(DG.Base):
@@ -227,18 +226,18 @@ class TBL_Word_Course_Data(DG.Base):
     count = Column(Integer)
 
 
-
-
 class TBL_Report_Type(DG.Base):
     __tablename__ = "tbl_report_type"
     report_type_id = Column(Integer, primary_key=True, autoincrement=True)
     report_type_name = Column(VARCHAR(128))
     report_type_description = Column(VARCHAR(512))
 
+
 class TBL_Operating_System(DG.Base):
     __tablename__ = "tbl_operating_system"
     os_id = Column(Integer, primary_key=True, autoincrement=True)
     os_name = Column(VARCHAR(128))
+
 
 class TBL_Browser(DG.Base):
     __tablename__ = "tbl_browser"
@@ -246,16 +245,16 @@ class TBL_Browser(DG.Base):
     browser_name = Column(VARCHAR(128))
     browser_version = Column(VARCHAR(128))
 
+
 class TBL_Report(DG.Base):
     __tablename__ = "tbl_report"
-    
+
     report_id = Column(Integer, primary_key=True, autoincrement=True)
     report_type = Column(Integer, ForeignKey(f"{TBL_Report_Type.__tablename__}.report_type_id"))
     operating_system = Column(Integer, ForeignKey(f"{TBL_Operating_System.__tablename__}.os_id"))
     browser_description = Column(Integer, ForeignKey(f"{TBL_Browser.__tablename__}.browser_id"))
     created_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
     description = Column(Text)
-
 
 
 def create_all():
@@ -282,7 +281,7 @@ def drop_all():
         TBL_Browser.__tablename__,
         TBL_Operating_System.__tablename__,
         TBL_Report_Type.__tablename__,
-        TBL_Report.__tablename__
+        TBL_Report.__tablename__,
     ]
     for name in db_names:
         for name in db_names:

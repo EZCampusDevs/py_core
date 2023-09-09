@@ -14,7 +14,7 @@ LOG_LEVEL_MAP = {
     logging.INFO: "INFO",
     logging.WARN: "WARN",
     logging.WARNING: "WARNING",
-    logging.ERROR: "ERROR"
+    logging.ERROR: "ERROR",
 }
 
 
