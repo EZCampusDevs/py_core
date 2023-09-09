@@ -13,29 +13,38 @@ from . import db_tables as DT
 
 load_dotenv()
 
+
 def Session():
     return DG.Session
+
 
 def Engine():
     return DG.Engine
 
+
 def Base():
     return DG.Base
+
 
 def get_env_db_host(default=None):
     return os.getenv("DB_HOST", default)
 
+
 def get_env_db_port(default=None):
     return os.getenv("DB_PORT", default)
+
 
 def get_env_db_user(default=None):
     return os.getenv("DB_USER", default)
 
+
 def get_env_db_password(default=None):
     return os.getenv("DB_PASSWORD", default)
 
+
 def get_env_db_name(default=None):
     return os.getenv("DB_NAME", default)
+
 
 def get_env_db_dir(default=None):
     return os.getenv("DB_DIR", default)
