@@ -30,6 +30,15 @@ import db
 
 target_metadata = db.DG.Base.metadata
 
+# if you change the enviornment variable names here - this stuff after "section ,"
+# you will have to update the alembic.ini file
+section = config.config_ini_section
+config.set_section_option(section, "DB_USER", db.get_env_db_user("test"))
+config.set_section_option(section, "DB_PASSWORD", db.get_env_db_password("root"))
+config.set_section_option(section, "DB_PORT", db.get_env_db_port("3306"))
+config.set_section_option(section, "DB_HOST", db.get_env_db_host("localhost"))
+config.set_section_option(section, "DB_NAME", db.get_env_db_name("hibernate_db"))
+
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
