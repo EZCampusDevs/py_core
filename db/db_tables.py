@@ -156,6 +156,8 @@ class TBL_Meeting(DG.Base):
 
     course_data_id = Column(Integer, ForeignKey("tbl_course_data.course_data_id"))
 
+    scrape_id = Column(Integer, ForeignKey("tbl_scrape_history.scrape_id"))
+
     term_id = Column(Integer, ForeignKey("tbl_term.term_id"))
 
     crn = Column(VARCHAR(32))
