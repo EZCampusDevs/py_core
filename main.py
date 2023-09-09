@@ -21,7 +21,23 @@ def main():
         load_env=False,
     )
     
+    db.DT.drop_all()
+    db.DT.create_all()
+    
     session: db.SessionObj
+    
+    with db.Session().begin() as session:
+
+        school = db.DT.TBL_School(
+            school_unique_value="school test school",
+            subdomain="sts",
+            timezone="utc",
+            scrape_id_last=1
+            
+        )
+        session.add(school)
+
+
     with db.Session().begin() as session:
         
         report_type = db.DT.TBL_Report_Type(
