@@ -16,6 +16,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql import func
 
 from . import db_globals as DG
@@ -38,14 +39,14 @@ class TBL_School(DG.Base):
     school_unique_value = Column(VARCHAR(128))
     subdomain = Column(VARCHAR(64))
     timezone = Column(VARCHAR(64))
-    scrape_id_last = Column(Integer, ForeignKey(f"{TBL_Scrape_History.__tablename__}.scrape_id"))
+    scrape_id_last = Column(Integer, ForeignKey(TBL_Scrape_History.scrape_id))
 
 
 class TBL_Term(DG.Base):
     __tablename__ = "tbl_term"
 
     term_id = Column(Integer, primary_key=True, autoincrement=True)
-    school_id = Column(Integer, ForeignKey("tbl_school.school_id"))
+    school_id = Column(Integer, ForeignKey(TBL_School.school_id))
     real_term_id = Column(Integer)
     term_description = Column(VARCHAR(128))
 
@@ -58,7 +59,7 @@ class TBL_Course(DG.Base):
     __tablename__ = "tbl_course"
 
     course_id = Column(Integer, primary_key=True, autoincrement=True)
-    term_id = Column(Integer, ForeignKey("tbl_term.term_id"))
+    term_id = Column(Integer, ForeignKey(TBL_Term.term_id))
     course_code = Column(VARCHAR(32))
     course_description = Column(VARCHAR(128))
 
@@ -88,15 +89,20 @@ class TBL_Course_Data(DG.Base):
     __tablename__ = "tbl_course_data"
     __table_args__ = (UniqueConstraint("course_id", "crn", name="_course_id_crn_constraint"),)
 
+    # children1 = relationship("TBL_Meeting", backref='parent', passive_deletes=True)
+    # children2 = relationship("TBL_Course_Faculty", backref='parent', passive_deletes=True)
+    # children3 = relationship("TBL_Course_Restriction", backref='parent', passive_deletes=True)
+    # children4 = relationship("TBL_Word_Course_Data", backref='parent', passive_deletes=True)
+
     course_data_id = Column(Integer, autoincrement=True, primary_key=True)
 
-    course_id = Column(Integer, ForeignKey("tbl_course.course_id"))
+    course_id = Column(Integer, ForeignKey(TBL_Course.course_id))
 
-    scrape_id = Column(Integer, ForeignKey("tbl_scrape_history.scrape_id"))
+    scrape_id = Column(Integer, ForeignKey(TBL_Scrape_History.scrape_id))
 
-    class_type_id = Column(Integer, ForeignKey("tbl_classtype.class_type_id"))
+    class_type_id = Column(Integer, ForeignKey(TBL_Class_Type.class_type_id))
 
-    subject_id = Column(Integer, ForeignKey("tbl_subject.subject_id"))
+    subject_id = Column(Integer, ForeignKey(TBL_Subject.subject_id))
 
     # course reference number / crn
     crn = Column(VARCHAR(32))
@@ -125,26 +131,29 @@ class TBL_Course_Data(DG.Base):
     sequence_number = Column(VARCHAR(128))
 
     should_be_indexed = Column(Boolean)
+    
 
+    def __repr__(self):
 
-class TBL_Course_Faculty(DG.Base):
-    __tablename__ = "tbl_course_faculty"
-
-    course_data_id = Column(Integer, ForeignKey("tbl_course_data.course_data_id"), primary_key=True)
-
-    faculty_id = Column(Integer, ForeignKey("tbl_faculty.faculty_id"), primary_key=True)
-
+        return f"<CourseData {self.course_data_id} {self.course_id} {self.course_title}>"
 
 class TBL_Faculty(DG.Base):
     __tablename__ = "tbl_faculty"
 
     faculty_id = Column(Integer, primary_key=True, autoincrement=True)
     banner_id = Column(BINARY(length=32), unique=True, nullable=False)
-    scrape_id = Column(Integer, ForeignKey("tbl_scrape_history.scrape_id"))
+    scrape_id = Column(Integer, ForeignKey(TBL_Scrape_History.scrape_id))
     instructor_name = Column(VARCHAR(128))
     instructor_email = Column(VARCHAR(128))
     instructor_rating = Column(Integer)
 
+class TBL_Course_Faculty(DG.Base):
+    __tablename__ = "tbl_course_faculty"
+
+    course_data_id = Column(Integer, ForeignKey(TBL_Course_Data.course_data_id, ondelete="CASCADE"), primary_key=True)
+    parent = relationship(TBL_Course_Data, backref=backref('child_tbl_course_faculty', passive_deletes=True))
+
+    faculty_id = Column(Integer, ForeignKey(TBL_Faculty.faculty_id), primary_key=True)
 
 class TBL_Meeting(DG.Base):
     __tablename__ = "tbl_meeting"
@@ -153,11 +162,12 @@ class TBL_Meeting(DG.Base):
 
     meeting_hash = Column(BINARY(length=32), unique=True, nullable=False)
 
-    course_data_id = Column(Integer, ForeignKey("tbl_course_data.course_data_id"))
+    course_data_id = Column(Integer, ForeignKey(TBL_Course_Data.course_data_id, ondelete="CASCADE"))
+    parent = relationship(TBL_Course_Data, backref=backref('child_tbl_course_meeting', passive_deletes=True))
 
-    scrape_id = Column(Integer, ForeignKey("tbl_scrape_history.scrape_id"))
+    scrape_id = Column(Integer, ForeignKey(TBL_Scrape_History.scrape_id))
 
-    term_id = Column(Integer, ForeignKey("tbl_term.term_id"))
+    term_id = Column(Integer, ForeignKey(TBL_Term.term_id))
 
     crn = Column(VARCHAR(32))
 
@@ -199,14 +209,15 @@ class TBL_Restriction(DG.Base):
     restriction = Column(VARCHAR(128))
     must_be_in = Column(Boolean)
 
-    restriction_type = Column(Integer, ForeignKey("tbl_restriction_type.restriction_type_id"))
+    restriction_type = Column(Integer, ForeignKey(TBL_Restriction_Type.restriction_type_id))
 
 
 class TBL_Course_Restriction(DG.Base):
     __tablename__ = "tbl_course_restriction"
 
-    course_data_id = Column(Integer, ForeignKey("tbl_course_data.course_data_id"), primary_key=True)
-    restriction_id = Column(Integer, ForeignKey("tbl_restriction.restriction_id"), primary_key=True)
+    course_data_id = Column(Integer, ForeignKey(TBL_Course_Data.course_data_id, ondelete="CASCADE"), primary_key=True)
+    parent = relationship(TBL_Course_Data, backref=backref('child_tbl_course_restriction', passive_deletes=True))
+    restriction_id = Column(Integer, ForeignKey(TBL_Restriction.restriction_id), primary_key=True)
 
 
 class TBL_Word(DG.Base):
@@ -221,8 +232,9 @@ class TBL_Word(DG.Base):
 class TBL_Word_Course_Data(DG.Base):
     __tablename__ = "tbl_word_course_data"
 
-    word_id = Column(Integer, ForeignKey("tbl_word.word_id"), primary_key=True)
-    course_data_id = Column(Integer, ForeignKey("tbl_course_data.course_data_id"), primary_key=True)
+    word_id = Column(Integer, ForeignKey(TBL_Word.word_id), primary_key=True)
+    course_data_id = Column(Integer, ForeignKey(TBL_Course_Data.course_data_id, ondelete="CASCADE"), primary_key=True)
+    parent = relationship(TBL_Course_Data, backref=backref('child_tbl_word_course_data', passive_deletes=True))
     count = Column(Integer)
 
 
@@ -250,11 +262,13 @@ class TBL_Report(DG.Base):
     __tablename__ = "tbl_report"
 
     report_id = Column(Integer, primary_key=True, autoincrement=True)
-    report_type = Column(Integer, ForeignKey(f"{TBL_Report_Type.__tablename__}.report_type_id"))
-    operating_system = Column(Integer, ForeignKey(f"{TBL_Operating_System.__tablename__}.os_id"))
-    browser_description = Column(Integer, ForeignKey(f"{TBL_Browser.__tablename__}.browser_id"))
+    report_type = Column(Integer, ForeignKey(TBL_Report_Type.report_type_id))
+    operating_system = Column(Integer, ForeignKey(TBL_Operating_System.os_id))
+    browser_description = Column(Integer, ForeignKey(TBL_Browser.browser_id))
     created_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
     description = Column(Text)
+
+
 
 
 def create_all():
