@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, event
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.session import Session as SessionObj
 
 # It's very important you don't import Engine, Session, and Base directly because the get modified
 #  at runtime, so you should use the functions below to access them.
@@ -12,32 +13,47 @@ from . import db_tables as DT
 
 load_dotenv()
 
+
 def Session():
     return DG.Session
+
 
 def Engine():
     return DG.Engine
 
+
 def Base():
     return DG.Base
 
+DB_HOST_ENV_NAME = "DB_HOST"
+DB_PORT_ENV_NAME = "DB_PORT"
+DB_USER_ENV_NAME = "DB_USER"
+DB_PASS_ENV_NAME = "DB_PASSWORD"
+DB_NAME_ENV_NAME = "DB_NAME"
+DB_DIR_ENV_NAME  = "DB_DIR"
+
 def get_env_db_host(default=None):
-    return os.getenv("DB_HOST", default)
+    return os.getenv(DB_HOST_ENV_NAME, default)
+
 
 def get_env_db_port(default=None):
-    return os.getenv("DB_PORT", default)
+    return os.getenv(DB_PORT_ENV_NAME, default)
+
 
 def get_env_db_user(default=None):
-    return os.getenv("DB_USER", default)
+    return os.getenv(DB_USER_ENV_NAME, default)
+
 
 def get_env_db_password(default=None):
-    return os.getenv("DB_PASSWORD", default)
+    return os.getenv(DB_PASS_ENV_NAME, default)
+
 
 def get_env_db_name(default=None):
-    return os.getenv("DB_NAME", default)
+    return os.getenv(DB_NAME_ENV_NAME, default)
+
 
 def get_env_db_dir(default=None):
-    return os.getenv("DB_DIR", default)
+    return os.getenv(DB_DIR_ENV_NAME, default)
 
 
 def check_env():
