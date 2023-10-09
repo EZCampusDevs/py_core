@@ -247,9 +247,10 @@ class TBL_Word(DG.Base):
 class TBL_Word_Course_Data(DG.Base):
     __tablename__ = "tbl_word_course_data"
 
-    word_id = Column(Integer, ForeignKey(TBL_Word.word_id), primary_key=True)
+    word_id = Column(Integer, ForeignKey(TBL_Word.word_id, ondelete="CASCADE"), primary_key=True)
     course_data_id = Column(Integer, ForeignKey(TBL_Course_Data.course_data_id, ondelete="CASCADE"), primary_key=True)
     parent = relationship(TBL_Course_Data, backref=backref('child_tbl_word_course_data', passive_deletes=True))
+    parent1 = relationship(TBL_Word, backref=backref('child_tbl_word_course_data', passive_deletes=True))
     count = Column(Integer)
 
 

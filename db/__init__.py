@@ -25,7 +25,6 @@ from sqlalchemy.orm.session import Session as SessionObj
 #  at runtime, so you should use the functions below to access them.
 from . import db_globals as DG
 from . import db_tables as DT
-from . import db_methods as DM
 
 load_dotenv()
 
@@ -137,3 +136,7 @@ def init_database(
                 raise e
 
     DG.Database_Initialized = True
+
+
+# import order matters!
+from . import db_methods as DM
