@@ -311,6 +311,7 @@ def drop_all():
         TBL_Operating_System.__tablename__,
         TBL_Report_Type.__tablename__,
         TBL_Report.__tablename__,
+        "alembic_version",
     ]
     for name in db_names:
         for name in db_names:
