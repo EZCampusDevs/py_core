@@ -284,7 +284,21 @@ class TBL_Report(DG.Base):
     description = Column(Text)
 
 
+class TBL_User(DG.Base):
+    __tablename__ = "tbl_user"
+    
+    user_id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(VARCHAR(128), nullable=False)
+    email = Column(VARCHAR(128))
+    password_hash = Column(BINARY(length=60), nullable=False)
+    is_suspended = Column(Boolean, nullable=False)
+    account_status = Column(Integer, nullable=False)
+    created_at = Column(TIMESTAMP, server_default=func.now())
 
+class TBL_Alembic_Version(DG.Base):
+    __tablename__ = "alembic_version"
+
+    version_num= Column(VARCHAR(32), primary_key=True, nullable=False)
 
 def create_all():
     DG.Base.metadata.create_all(DG.Engine)
@@ -311,7 +325,8 @@ def drop_all():
         TBL_Operating_System.__tablename__,
         TBL_Report_Type.__tablename__,
         TBL_Report.__tablename__,
-        "alembic_version",
+        TBL_User.__tablename__,
+        TBL_Alembic_Version.__tablename__
     ]
     for name in db_names:
         for name in db_names:

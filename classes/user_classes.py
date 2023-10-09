@@ -24,6 +24,7 @@ Notes:
 import base64
 import hashlib
 import re
+import os
 from datetime import datetime
 from typing import Optional
 from uuid import uuid4
@@ -82,6 +83,17 @@ API_406_YEAR_OF_STUDY_INVALID = HTTPException(
 HTTP_409_BAD_ACCOUNT_STATUS = HTTPException(
     status_code=status.HTTP_409_CONFLICT, detail="Broken account status."
 )
+
+ACCOUNT_STATUS_DELETED = -9
+ACCOUNT_STATUS_BANNED = -8
+ACCOUNT_STATUS_STANDARD = 0
+ACCOUNT_STATUS_CLUB_EXEC = 3
+ACCOUNT_STATUS_SOCIETY_EXECUTIVE = 4
+ACCOUNT_STATUS_PRIVILEGED = 5
+ACCOUNT_STATUS_ADMIN = 8
+ACCOUNT_STATUS_DEVELOPER = 9
+
+PEPPER = os.getenv("PASSWORD_PEPPER", "this is a pepper")
 
 
 # ---------- Start of Validation Functions ----------
@@ -147,13 +159,43 @@ def valid_hashed_password(password: str) -> bool:
     return True
 
 
-def hash_password(password: str) -> str:
-    if isinstance(password, str):
-        password.encode()  # Taken from the bcrypt docs (Work around for 72 char limit)
-    return bcrypt.hashpw(
-        base64.b64encode(hashlib.sha256(password.encode()).digest()), bcrypt.gensalt(12)
-    ).decode()
+def hash_password(password: str|bytes, salt:bytes=None, *, pepper : str|bytes = PEPPER) -> str:
 
+    if isinstance(password, str):
+        password = password.encode()
+        
+    if isinstance(pepper, str):
+        pepper = pepper.encode()
+
+    if salt is None:
+        salt = bcrypt.gensalt(12)
+        
+    password = password + pepper
+
+    return bcrypt.hashpw( base64.b64encode(hashlib.sha256(password).digest()), salt )
+
+def verify_password(password : str|bytes, hashed_password : str|bytes, *, pepper : str|bytes = PEPPER) -> bool:
+    """ validates if the given password is a match for the given hash, returns bool """
+    
+    if isinstance(password, str):
+        password = password.encode()
+
+    if isinstance(hashed_password, str):
+        hashed_password = hashed_password.encode()
+
+    if isinstance(hashed_password, bytearray):
+        hashed_password = bytes(hashed_password)
+
+    if isinstance(pepper, str):
+        pepper = pepper.encode()
+
+    password = password + pepper
+
+    return bcrypt.checkpw(
+                base64.b64encode(
+                    hashlib.sha256(
+                        password).digest()), 
+                hashed_password)
 
 def valid_name(name: str) -> bool:
     if not isinstance(name, str) or len(name) < NAME_MIN_LEN or len(name) > NAME_MAX_LEN:

@@ -13,3 +13,44 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+
+import logging
+from . import db, classes, logging_util
+
+
+def init_drop_create_db():
+    logging_util.setup_logging()
+    db.init_database(
+        db_host="localhost",
+        db_port=3306,
+        db_user="test",
+        db_pass="root",
+        db_name="hibernate_db",
+        load_env=False,
+    )
+    db.DT.drop_all()
+    db.DT.create_all()
+
+def test_users():
+
+    session: db.SessionObj
+
+    with db.Session().begin() as session:
+        
+        username = "test"
+        password = "password"
+
+        db.DM.insert_user_nt(session, username, classes.user_classes.hash_password(password))
+        
+        for i in db.DM.select_users_by_name_nt(session, username):
+
+            logging.info(i.user_id, i.username, i.password_hash)
+
+            logging.info("Password matches:", classes.user_classes.verify_password(password, i.password_hash)) 
+
+
+def main():
+
+    init_drop_create_db()
+
+    test_users()
