@@ -31,7 +31,7 @@ def upgrade() -> None:
         sa.Column("password_hash", sa.BINARY(length=60), nullable=False),
         sa.Column("is_suspended", sa.Boolean(), nullable=False),
         sa.Column("account_status", sa.Integer(), nullable=False),
-        sa.Column("created_at", sa.TIMESTAMP(), nullable=False, server_default=sa.sql.func.now()),
+        sa.Column("created_at", sa.TIMESTAMP(), server_default=sa.sql.func.now()),
         sa.PrimaryKeyConstraint("user_id"),
     )
     # ### end Alembic commands ###
