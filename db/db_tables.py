@@ -300,6 +300,38 @@ class TBL_Alembic_Version(DG.Base):
     __tablename__ = "alembic_version"
 
     version_num= Column(VARCHAR(32), primary_key=True, nullable=False)
+    
+
+class TBL_Event(DG.Base):
+    __tablename__ = "tbl_event"
+    
+    event_id = Column(Integer, primary_key=True, autoincrement=True)
+
+    timezone = Column(VARCHAR(64))
+    name = Column(VARCHAR(512))
+    description = Column(Text)
+    
+    location = Column(VARCHAR(512))
+    
+    seats_filled = Column(Integer)
+    max_capacity = Column(Integer)
+
+    color = Column(Integer)
+    is_virtual = Column(Boolean)
+
+    started_at = Column(Date)
+    ended_at = Column(Date)
+
+    begin_time = Column(VARCHAR(16))
+    end_time = Column(VARCHAR(16))
+
+    occurrence_unit = Column(Integer)
+    occurrence_interval = Column(Integer)
+    occurrence_repeat = Column(Integer)
+    occurrence_until = Column(Date)
+
+    days_of_week = Column(Integer)
+
 
 def create_all():
     DG.Base.metadata.create_all(DG.Engine)
@@ -327,7 +359,8 @@ def drop_all():
         TBL_Report_Type.__tablename__,
         TBL_Report.__tablename__,
         TBL_User.__tablename__,
-        TBL_Alembic_Version.__tablename__
+        TBL_Alembic_Version.__tablename__,
+        TBL_Event.__tablename__
     ]
     for name in db_names:
         for name in db_names:
