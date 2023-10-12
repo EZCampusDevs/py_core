@@ -60,7 +60,7 @@ def get_users_via(usernames: list[str] | None = None) -> list[BasicUser]:
                         edited_at=result.edited_at,
                     )
                 )
-                return users
+            return users
     except AttributeError as e:
         msg = e.args[0]
         if "'NoneType' object has no attribute 'begin'" in msg:
