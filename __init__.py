@@ -40,13 +40,13 @@ def test_users():
         username = "test"
         password = "password"
 
-        db.DM.insert_user_nt(session, username, classes.user_classes.hash_password(password))
+        db.DM.insert_user_nt(session, username,email="",password=classes.user_classes.hash_password(password))
         
         for i in db.DM.select_users_by_name_nt(session, username):
 
-            logging.info(i.user_id, i.username, i.password_hash)
+            logging.info(f"{i.user_id} {i.username} {i.password_hash}")
 
-            logging.info("Password matches:", classes.user_classes.verify_password(password, i.password_hash)) 
+            logging.info(f"Password matches: {classes.user_classes.verify_password(password, i.password_hash)}") 
 
 
 def main():
