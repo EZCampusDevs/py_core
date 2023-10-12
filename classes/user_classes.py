@@ -432,7 +432,7 @@ class BasicUser(BaseModel):
     is_private: bool
     is_suspended: bool
     account_status: int
-    schedule_tag: str
+    schedule_tag: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
     created_at: datetime
     edited_at: datetime
 
