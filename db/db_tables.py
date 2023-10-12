@@ -1,4 +1,4 @@
-# Copyright (C) 2022-2023 EZCampus 
+# Copyright (C) 2022-2023 EZCampus
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -146,11 +146,10 @@ class TBL_Course_Data(DG.Base):
     sequence_number = Column(VARCHAR(128))
 
     should_be_indexed = Column(Boolean)
-    
 
     def __repr__(self):
-
         return f"<CourseData {self.course_data_id} {self.course_id} {self.course_title}>"
+
 
 class TBL_Faculty(DG.Base):
     __tablename__ = "tbl_faculty"
@@ -162,13 +161,19 @@ class TBL_Faculty(DG.Base):
     instructor_email = Column(VARCHAR(128))
     instructor_rating = Column(Integer)
 
+
 class TBL_Course_Faculty(DG.Base):
     __tablename__ = "tbl_course_faculty"
 
-    course_data_id = Column(Integer, ForeignKey(TBL_Course_Data.course_data_id, ondelete="CASCADE"), primary_key=True)
-    parent = relationship(TBL_Course_Data, backref=backref('child_tbl_course_faculty', passive_deletes=True))
+    course_data_id = Column(
+        Integer, ForeignKey(TBL_Course_Data.course_data_id, ondelete="CASCADE"), primary_key=True
+    )
+    parent = relationship(
+        TBL_Course_Data, backref=backref("child_tbl_course_faculty", passive_deletes=True)
+    )
 
     faculty_id = Column(Integer, ForeignKey(TBL_Faculty.faculty_id), primary_key=True)
+
 
 class TBL_Meeting(DG.Base):
     __tablename__ = "tbl_meeting"
@@ -178,7 +183,9 @@ class TBL_Meeting(DG.Base):
     meeting_hash = Column(BINARY(length=32), unique=True, nullable=False)
 
     course_data_id = Column(Integer, ForeignKey(TBL_Course_Data.course_data_id, ondelete="CASCADE"))
-    parent = relationship(TBL_Course_Data, backref=backref('child_tbl_course_meeting', passive_deletes=True))
+    parent = relationship(
+        TBL_Course_Data, backref=backref("child_tbl_course_meeting", passive_deletes=True)
+    )
 
     scrape_id = Column(Integer, ForeignKey(TBL_Scrape_History.scrape_id))
 
@@ -230,8 +237,12 @@ class TBL_Restriction(DG.Base):
 class TBL_Course_Restriction(DG.Base):
     __tablename__ = "tbl_course_restriction"
 
-    course_data_id = Column(Integer, ForeignKey(TBL_Course_Data.course_data_id, ondelete="CASCADE"), primary_key=True)
-    parent = relationship(TBL_Course_Data, backref=backref('child_tbl_course_restriction', passive_deletes=True))
+    course_data_id = Column(
+        Integer, ForeignKey(TBL_Course_Data.course_data_id, ondelete="CASCADE"), primary_key=True
+    )
+    parent = relationship(
+        TBL_Course_Data, backref=backref("child_tbl_course_restriction", passive_deletes=True)
+    )
     restriction_id = Column(Integer, ForeignKey(TBL_Restriction.restriction_id), primary_key=True)
 
 
@@ -248,9 +259,15 @@ class TBL_Word_Course_Data(DG.Base):
     __tablename__ = "tbl_word_course_data"
 
     word_id = Column(Integer, ForeignKey(TBL_Word.word_id, ondelete="CASCADE"), primary_key=True)
-    course_data_id = Column(Integer, ForeignKey(TBL_Course_Data.course_data_id, ondelete="CASCADE"), primary_key=True)
-    parent = relationship(TBL_Course_Data, backref=backref('child_tbl_word_course_data', passive_deletes=True))
-    parent1 = relationship(TBL_Word, backref=backref('child_tbl_word_course_data', passive_deletes=True))
+    course_data_id = Column(
+        Integer, ForeignKey(TBL_Course_Data.course_data_id, ondelete="CASCADE"), primary_key=True
+    )
+    parent = relationship(
+        TBL_Course_Data, backref=backref("child_tbl_word_course_data", passive_deletes=True)
+    )
+    parent1 = relationship(
+        TBL_Word, backref=backref("child_tbl_word_course_data", passive_deletes=True)
+    )
     count = Column(Integer)
 
 
@@ -287,32 +304,36 @@ class TBL_Report(DG.Base):
 
 class TBL_User(DG.Base):
     __tablename__ = "tbl_user"
-    
+
     user_id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(VARCHAR(128), nullable=False)
     email = Column(VARCHAR(128))
     password_hash = Column(BINARY(length=60), nullable=False)
+    display_name = Column(VARCHAR(128))
+    is_private = Column(Boolean, nullable=False)
     is_suspended = Column(Boolean, nullable=False)
     account_status = Column(Integer, nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now())
+    edited_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+
 
 class TBL_Alembic_Version(DG.Base):
     __tablename__ = "alembic_version"
 
-    version_num= Column(VARCHAR(32), primary_key=True, nullable=False)
-    
+    version_num = Column(VARCHAR(32), primary_key=True, nullable=False)
+
 
 class TBL_Event(DG.Base):
     __tablename__ = "tbl_event"
-    
+
     event_id = Column(Integer, primary_key=True, autoincrement=True)
 
     timezone = Column(VARCHAR(64))
     name = Column(VARCHAR(512))
     description = Column(Text)
-    
+
     location = Column(VARCHAR(512))
-    
+
     seats_filled = Column(Integer)
     max_capacity = Column(Integer)
 
@@ -360,7 +381,7 @@ def drop_all():
         TBL_Report.__tablename__,
         TBL_User.__tablename__,
         TBL_Alembic_Version.__tablename__,
-        TBL_Event.__tablename__
+        TBL_Event.__tablename__,
     ]
     for name in db_names:
         for name in db_names:
