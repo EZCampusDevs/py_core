@@ -1,4 +1,4 @@
-# Copyright (C) 2022-2023 EZCampus 
+# Copyright (C) 2022-2023 EZCampus
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -23,8 +23,8 @@ Notes:
 
 import base64
 import hashlib
-import re
 import os
+import re
 from datetime import datetime
 from typing import Optional
 from uuid import uuid4
@@ -159,24 +159,28 @@ def valid_hashed_password(password: str) -> bool:
     return True
 
 
-def hash_password(password: str|bytes, salt:bytes=None, *, pepper : str|bytes = PEPPER) -> str:
-
+def hash_password(
+    password: str | bytes, salt: bytes = None, *, pepper: str | bytes = PEPPER
+) -> str:
     if isinstance(password, str):
         password = password.encode()
-        
+
     if isinstance(pepper, str):
         pepper = pepper.encode()
 
     if salt is None:
         salt = bcrypt.gensalt(12)
-        
+
     password = password + pepper
 
-    return bcrypt.hashpw( base64.b64encode(hashlib.sha256(password).digest()), salt )
+    return bcrypt.hashpw(base64.b64encode(hashlib.sha256(password).digest()), salt)
 
-def verify_password(password : str|bytes, hashed_password : str|bytes, *, pepper : str|bytes = PEPPER) -> bool:
-    """ validates if the given password is a match for the given hash, returns bool """
-    
+
+def verify_password(
+    password: str | bytes, hashed_password: str | bytes, *, pepper: str | bytes = PEPPER
+) -> bool:
+    """validates if the given password is a match for the given hash, returns bool"""
+
     if isinstance(password, str):
         password = password.encode()
 
@@ -191,11 +195,8 @@ def verify_password(password : str|bytes, hashed_password : str|bytes, *, pepper
 
     password = password + pepper
 
-    return bcrypt.checkpw(
-                base64.b64encode(
-                    hashlib.sha256(
-                        password).digest()), 
-                hashed_password)
+    return bcrypt.checkpw(base64.b64encode(hashlib.sha256(password).digest()), hashed_password)
+
 
 def valid_name(name: str) -> bool:
     if not isinstance(name, str) or len(name) < NAME_MIN_LEN or len(name) > NAME_MAX_LEN:
@@ -267,15 +268,15 @@ class CreateUser(BaseModel):
                 school_short_name="OTSL", \
                 program="Engineering", \
                 year_of_study=2, \
-                private_account=0 \
+                is_private=0 \
         )
-        CreateUser(username='borkd', email='coding@waytoolate.com', password='$HASHED_PASSWORD_HERE$', name='Daniel Jeon', description='Hello there!', school_short_name='OTSL', program='Engineering', year_of_study=2, private_account=False, is_verified=0, account_status=0, schedule_tag='UUID4_STR_HERE')
+        CreateUser(username='borkd', email='coding@waytoolate.com', password='$HASHED_PASSWORD_HERE$', name='Daniel Jeon', description='Hello there!', school_short_name='OTSL', program='Engineering', year_of_study=2, is_private=False, is_suspended=0, account_status=0, schedule_tag='UUID4_STR_HERE')
         >>> CreateUser( \
                 username="minimum_test_case", \
                 email="email@domain.com", \
                 password="password123", \
         )
-        CreateUser(username='minimum_test_case', email='email@domain.com', password='$HASHED_PASSWORD_HERE$', name='test_username', description='', school_short_name=None, program=None, year_of_study=None, private_account=True, is_verified=0, account_status=0, schedule_tag='UUID4_STR_HERE')
+        CreateUser(username='minimum_test_case', email='email@domain.com', password='$HASHED_PASSWORD_HERE$', name='test_username', description='', school_short_name=None, program=None, year_of_study=None, is_private=True, is_suspended=0, account_status=0, schedule_tag='UUID4_STR_HERE')
     """
 
     username: str
@@ -286,8 +287,8 @@ class CreateUser(BaseModel):
     school_short_name: Optional[str]
     program: Optional[str]
     year_of_study: int = 0
-    private_account: bool = True
-    is_verified = 0  # Force the default of value 0.
+    is_private: bool = True
+    is_suspended = 0  # Force the default of value 0.
     account_status: int = 0  # Default of value 0.
     schedule_tag = str(uuid4())  # Force the default of random UUID4 value.
 
@@ -361,8 +362,8 @@ class EditUser(BaseModel):
     school_short_name: Optional[str]
     program: Optional[str]
     year_of_study: Optional[int]
-    private_account: bool
-    is_verified: bool
+    is_private: bool
+    is_suspended: bool
     account_status: int
     schedule_tag: str
 
@@ -424,15 +425,16 @@ class BasicUser(BaseModel):
     email: str
     hashed_password: str
     name: str
-    description: Optional[str]
-    school_short_name: Optional[str]
-    program: Optional[str]
-    year_of_study: Optional[int]
-    private_account: bool
-    is_verified: bool
+    description: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
+    school_short_name: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
+    program: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
+    year_of_study: Optional[int]  # TODO: Need to implement on the DB with foreign key reference
+    is_private: bool
+    is_suspended: bool
     account_status: int
     schedule_tag: str
-    metadata_created_on: datetime
+    created_at: datetime
+    edited_at: datetime
 
     def get_account_status_str(self) -> str | None:
         return convert_account_status_to_str(self.account_status)
@@ -467,8 +469,8 @@ def edit_user_from_basic_user(basic_user: BasicUser, password: str) -> EditUser:
         school_short_name=basic_user.school_short_name,
         program=basic_user.program,
         year_of_study=basic_user.year_of_study,
-        private_account=basic_user.private_account,
-        is_verified=basic_user.is_verified,
+        is_private=basic_user.is_private,
+        is_suspended=basic_user.is_suspended,
         account_status=basic_user.account_status,
         schedule_tag=basic_user.schedule_tag,
     )
