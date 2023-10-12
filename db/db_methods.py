@@ -50,6 +50,7 @@ def insert_user_nt(session: SessionObj, username: str, email:str, password: byte
     usr.password_hash = password
     usr.is_suspended = is_suspended
     usr.account_status = 0
+    usr.is_private = 0
     
     session.add(usr)
     
