@@ -205,7 +205,7 @@ def valid_name(name: str) -> bool:
 
 
 def valid_description(description: str) -> bool:
-    if not isinstance(description, str) or len(description) > DESC_MAX_LEN:
+    if not None and (not isinstance(description, str) or len(description) > DESC_MAX_LEN):
         return False
     return True
 
@@ -214,16 +214,14 @@ def valid_description(description: str) -> bool:
 
 
 def valid_program(program: str) -> bool:
-    if not isinstance(program, str) or len(program) > PROGRAM_MAX_LEN:
+    if not None and (not isinstance(program, str) or len(program) > PROGRAM_MAX_LEN):
         return False
     return True
 
 
 def valid_year_of_study(year_of_study: str) -> bool:
-    if (
-        not isinstance(year_of_study, int)
-        or year_of_study < YEAR_OF_STUDY_MIN
-        or year_of_study > YEAR_OF_STUDY_MAX
+    if not None and (
+        not isinstance(year_of_study, int) or YEAR_OF_STUDY_MIN > year_of_study > YEAR_OF_STUDY_MAX
     ):
         return False
     return True
@@ -286,11 +284,11 @@ class CreateUser(BaseModel):
     description: Optional[str]
     school_short_name: Optional[str]
     program: Optional[str]
-    year_of_study: int = 0
-    is_private: bool = True
-    is_suspended = 0  # Force the default of value 0.
+    year_of_study: Optional[int]
+    is_private: bool = True  # Force the default True.
+    is_suspended: bool = False  # Force the default False.
     account_status: int = 0  # Default of value 0.
-    schedule_tag = str(uuid4())  # Force the default of random UUID4 value.
+    schedule_tag: Optional[str]  # = str(uuid4())  # Force the default of random UUID4 value.
 
     @validator("username")
     def validate_username(cls, v):
@@ -365,7 +363,7 @@ class EditUser(BaseModel):
     is_private: bool
     is_suspended: bool
     account_status: int
-    schedule_tag: str
+    schedule_tag: Optional[str]
 
     @validator("username")
     def validate_username(cls, v):
