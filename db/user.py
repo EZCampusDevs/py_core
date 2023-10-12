@@ -17,11 +17,42 @@
 User related DML abstraction.
 """
 
-from sqlalchemy.orm.session import Session as SessionObj
+import logging
 
+from . import Session, SessionObj
 from . import db_globals as DG
-from .db_tables import TBL_User
-from ..classes.user_classes import BasicUser
+from . import db_tables as DT
+
+from .. classes.user_classes import BasicUser
+
+
+def insert_user_nt(session: SessionObj, username: str, email:str, password: bytes, is_suspended: bool = False) -> None:
+    
+    logging.debug(f"Inserting user with name {username} and password with length {len(password)}")
+
+    usr = DT.TBL_User()
+    usr.username = username
+    usr.email = email
+    usr.password_hash = password
+    usr.is_suspended = is_suspended
+    usr.account_status = 0
+    usr.is_private = 1
+    
+    session.add(usr)
+    
+
+def insert_user(session: SessionObj, username: str, email:str, password: bytes, is_suspended: bool = False) -> None:
+    
+    with Session().begin() as session:
+
+        insert_user_nt(session, username, email, password, is_suspended)
+    
+
+def select_users_by_name_nt(session: SessionObj, username: str) -> list[DT.TBL_User]:
+    
+    logging.debug(f"Selecting users with name {username}")
+    
+    return session.query(DT.TBL_User).filter_by(username = username).all()
 
 
 def get_users_via(usernames: list[str] | None = None) -> list[BasicUser]:
@@ -36,13 +67,14 @@ def get_users_via(usernames: list[str] | None = None) -> list[BasicUser]:
     if usernames is None or not usernames:
         return []
 
-    session: SessionObj
     try:
-        with DG.Session.begin() as session:
-            users = []
-            users_result = session.query(TBL_User).filter(TBL_User.username.in_(usernames)).all()
-            for result in users_result:
-                users.append(
+
+        session: SessionObj
+        with Session().begin() as session:
+
+            users_result = session.query(DT.TBL_User).filter(DT.TBL_User.username.in_(usernames)).all()
+            
+            return [
                     BasicUser(
                         username=result.username,
                         email=result.email,
@@ -59,18 +91,20 @@ def get_users_via(usernames: list[str] | None = None) -> list[BasicUser]:
                         created_at=result.created_at,
                         edited_at=result.edited_at,
                     )
-                )
-            return users
+            for result in users_result
+            ]
+        
     except AttributeError as e:
+
         msg = e.args[0]
+
         if "'NoneType' object has no attribute 'begin'" in msg:
+
             raise RuntimeWarning(
                 f"{msg} <--- Daniel: Check (local / ssh) connection to DB, possible missing "
                 f"init_database() call via 'from py_core.db import init_database'"
             )
-        else:
-            raise e
-    except Exception as e:
+
         raise e
 
 
@@ -80,36 +114,38 @@ def add_users(users: list[BasicUser] | None = None):
     Args:
         users: List of BasicUsers.
     """
+
     if users is None or not users:
         return []
 
-    db_users = []
-    for user in users:
-        db_users.append(
-            TBL_User(
-                username=user.username,
-                email=user.email,
-                password_hash=user.hashed_password,
-                display_name=user.name,
-                is_private=user.is_private,
-                is_suspended=user.is_suspended,
-                account_status=user.account_status,
-            )
-        )
-
-    session: SessionObj
     try:
-        with DG.Session.begin() as session:
-            session.add_all(db_users)
-            session.commit()
+
+        session: SessionObj
+
+        with Session().begin() as session:
+
+            for user in users:
+                
+                u = DT.TBL_User(
+                    username=user.username,
+                    email=user.email,
+                    password_hash=user.get_hashed_password(),
+                    display_name=user.name,
+                    is_private=user.is_private,
+                    is_suspended=user.is_suspended,
+                    account_status=user.account_status,
+                )
+                
+                session.add(u)
+
     except AttributeError as e:
+
         msg = e.args[0]
+
         if "'NoneType' object has no attribute 'begin'" in msg:
             raise RuntimeWarning(
                 f"{msg} <--- Daniel: Check (local / ssh) connection to DB, possible missing "
                 f"init_database() call via 'from py_core.db import init_database'"
             )
-        else:
-            raise e
-    except Exception as e:
+
         raise e
