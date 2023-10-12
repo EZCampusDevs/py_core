@@ -28,10 +28,10 @@ def init_drop_create_db():
         db_name="hibernate_db",
         load_env=False,
     )
-    db.DT.drop_all()
-    db.DT.create_all()
+    # db.DT.drop_all()
+    # db.DT.create_all()
 
-def test_users():
+def test_usersa():
 
     session: db.SessionObj
 
@@ -39,18 +39,53 @@ def test_users():
         
         username = "test"
         password = "password"
-
-        db.DM.insert_user_nt(session, username,email="",password=classes.user_classes.hash_password(password))
+        hashed = classes.user_classes.hash_password(password)
         
-        for i in db.DM.select_users_by_name_nt(session, username):
+        logging.debug(f"{type(hashed)} {hashed}")
+
+        db.user.insert_user_nt(session, username,email="",password=hashed)
+        
+        for i in db.user.select_users_by_name_nt(session, username):
 
             logging.info(f"{i.user_id} {i.username} {i.password_hash}")
 
             logging.info(f"Password matches: {classes.user_classes.verify_password(password, i.password_hash)}") 
 
+def test_usersb():
+
+    session: db.SessionObj
+
+    with db.Session().begin() as session:
+        
+        username = "testa"
+        password = "passwordalsdkjasldkjas"
+        users = [
+            classes.user_classes.BasicUser(
+                username=username,
+                email="test@gmail.com",
+                password=password,
+                name="test",
+                description="some random user for testing",
+                is_private=False,
+                is_suspended=False,
+                account_status=0,
+                created_at=0,
+                edited_at=0,
+            )
+        ]
+
+        db.user.add_users(users)
+        
+        for i in db.user.select_users_by_name_nt(session, username):
+
+            logging.info(f"{i.user_id} {i.username} {i.password_hash}")
+
+            logging.info(f"Password matches: {classes.user_classes.verify_password(password, i.password_hash)}") 
 
 def main():
 
     init_drop_create_db()
 
-    test_users()
+    test_usersa()
+
+    test_usersb()

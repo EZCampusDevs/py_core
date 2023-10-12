@@ -139,4 +139,4 @@ def init_database(
 
 
 # import order matters!
-from . import db_methods as DM
+from . import user
