@@ -136,7 +136,3 @@ def init_database(
                 raise e
 
     DG.Database_Initialized = True
-
-
-# import order matters!
-from . import user

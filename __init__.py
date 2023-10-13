@@ -15,7 +15,7 @@
 
 
 import logging
-from . import db, classes, logging_util
+from . import db, classes, logging_util, user
 
 
 def init_drop_create_db():
@@ -43,9 +43,9 @@ def test_usersa():
         
         logging.debug(f"{type(hashed)} {hashed}")
 
-        db.user.insert_user_nt(session, username,email="",password=hashed)
+        user.insert_user_nt(session, username,email="",password=hashed)
         
-        for i in db.user.select_users_by_name_nt(session, username):
+        for i in user.select_users_by_name_nt(session, username):
 
             logging.info(f"{i.user_id} {i.username} {i.password_hash}")
 
@@ -74,9 +74,9 @@ def test_usersb():
             )
         ]
 
-        db.user.add_users(users)
+        user.add_users(users)
         
-        for i in db.user.select_users_by_name_nt(session, username):
+        for i in user.select_users_by_name_nt(session, username):
 
             logging.info(f"{i.user_id} {i.username} {i.password_hash}")
 

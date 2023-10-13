@@ -26,21 +26,16 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm.session import Session as SessionObj
 
-from . import db_globals as DG
-from .db_tables import (
-    TBL_Class_Type,
-    TBL_Course,
-    TBL_Course_Data,
-    TBL_Course_Faculty,
-    TBL_Faculty,
-    TBL_Meeting,
-    TBL_School,
-    TBL_Subject,
-    TBL_Term,
-)
-from ..classes.course_class import Course, merge_course_meeting_occurrences
-from ..classes.instructor_class import Instructor
-from ..classes.meeting_class import Meeting
+import logging
+
+from . db import Session, SessionObj
+from . db import db_globals as DG
+from . db import db_tables as DT
+
+from . classes.user_classes import BasicUser
+from .classes.course_class import Course, merge_course_meeting_occurrences
+from .classes.instructor_class import Instructor
+from .classes.meeting_class import Meeting
 
 
 def get_courses_via(
@@ -98,27 +93,32 @@ def get_course_ids(course_codes: list[str], term_id: int) -> list[int]:
     Returns:
         List of course ids.
     """
-    session: SessionObj
+
     try:
-        with DG.Session.begin() as session:
+
+        session: SessionObj
+        with Session().begin() as session:
+
             c_d_result = (
-                session.query(TBL_Course)
+                session.query(DT.TBL_Course)
                 .filter(
-                    and_(TBL_Course.course_code.in_(course_codes), TBL_Course.term_id == term_id)
+                    and_(DT.TBL_Course.course_code.in_(course_codes), DT.TBL_Course.term_id == term_id)
                 )
                 .all()
             )
+
             return [result.course_id for result in c_d_result]
+
     except AttributeError as e:
+
         msg = e.args[0]
+
         if "'NoneType' object has no attribute 'begin'" in msg:
             raise RuntimeWarning(
                 f"{msg} <--- Daniel: Check (local / ssh) connection to DB, possible missing "
                 f"init_database() call via 'from py_core.db import init_database'"
             )
-        else:
-            raise e
-    except Exception as e:
+
         raise e
 
 
@@ -132,32 +132,37 @@ def __query_courses(
     # Course data result looking for matches of course_data_id and course_id, but also making
     #  sure there are no duplicates in the query.
     c_d_result = (
-        session.query(TBL_Course_Data)
+        session.query(DT.TBL_Course_Data)
         .filter(
             or_(
-                TBL_Course_Data.course_data_id.in_(course_data_id_list),
+                DT.TBL_Course_Data.course_data_id.in_(course_data_id_list),
                 and_(
-                    not_(TBL_Course_Data.course_data_id.in_(course_data_id_list)),
-                    TBL_Course_Data.course_id.in_(course_id_list),
+                    not_(DT.TBL_Course_Data.course_data_id.in_(course_data_id_list)),
+                    DT.TBL_Course_Data.course_id.in_(course_id_list),
                 ),
             )
         )
         .all()
     )
+
     for c_d_r in c_d_result:
         # Meeting result matching the previous query's course_data_id.
         mt_result = (
-            session.query(TBL_Meeting)
-            .filter(TBL_Meeting.course_data_id == c_d_r.course_data_id)
+            session.query(DT.TBL_Meeting)
+            .filter(DT.TBL_Meeting.course_data_id == c_d_r.course_data_id)
             .all()
         )
+
         meeting_list = []
+
         for mt_r in mt_result:
+
             if mt_r.begin_time is not None and mt_r.end_time is not None:
+
                 timezone_str = (
-                    session.query(TBL_School)
-                    .join(TBL_Term)
-                    .filter(TBL_Term.term_id == mt_r.term_id)
+                    session.query(DT.TBL_School)
+                    .join(DT.TBL_Term)
+                    .filter(DT.TBL_Term.term_id == mt_r.term_id)
                     .first()
                 ).timezone
 
@@ -179,15 +184,15 @@ def __query_courses(
                     )
                 )
         c_fc_result = (
-            session.query(TBL_Course_Faculty.faculty_id)
-            .filter(TBL_Course_Faculty.course_data_id == c_d_r.course_data_id)
+            session.query(DT.TBL_Course_Faculty.faculty_id)
+            .filter(DT.TBL_Course_Faculty.course_data_id == c_d_r.course_data_id)
             .all()
         )
         faculty_list = []
         for c_fc_r in c_fc_result:
             fc_result = (
-                session.query(TBL_Faculty)
-                .filter(TBL_Faculty.faculty_id == c_fc_r.faculty_id)
+                session.query(DT.TBL_Faculty)
+                .filter(DT.TBL_Faculty.faculty_id == c_fc_r.faculty_id)
                 .first()
             )
             faculty_list.append(
@@ -200,26 +205,26 @@ def __query_courses(
             )
         course_list.append(
             Course(
-                course_code=session.query(TBL_Course)
-                .filter(TBL_Course.course_id == c_d_r.course_id)
+                course_code=session.query(DT.TBL_Course)
+                .filter(DT.TBL_Course.course_id == c_d_r.course_id)
                 .first()
                 .course_code,
                 title=c_d_r.course_title,
                 crn=c_d_r.crn,
                 class_type=(
-                    session.query(TBL_Class_Type.class_type)
-                    .filter(TBL_Class_Type.class_type_id == c_d_r.class_type_id)
+                    session.query(DT.TBL_Class_Type.class_type)
+                    .filter(DT.TBL_Class_Type.class_type_id == c_d_r.class_type_id)
                     .first()
                 ).class_type,
                 section=c_d_r.sequence_number,
                 subject=(
-                    session.query(TBL_Subject.subject)
-                    .filter(TBL_Subject.subject_id == c_d_r.subject_id)
+                    session.query(DT.TBL_Subject.subject)
+                    .filter(DT.TBL_Subject.subject_id == c_d_r.subject_id)
                     .first()
                 ).subject,
                 subject_long=(
-                    session.query(TBL_Subject.subject_long)
-                    .filter(TBL_Subject.subject_id == c_d_r.subject_id)
+                    session.query(DT.TBL_Subject.subject_long)
+                    .filter(DT.TBL_Subject.subject_id == c_d_r.subject_id)
                     .first()
                 ).subject_long,
                 class_time=meeting_list,
