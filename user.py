@@ -19,11 +19,11 @@ User related DML abstraction.
 
 import logging
 
-from . import Session, SessionObj
-from . import db_globals as DG
-from . import db_tables as DT
+from . db import Session, SessionObj
+from . db import db_globals as DG
+from . db import db_tables as DT
 
-from .. classes.user_classes import BasicUser
+from . classes.user_classes import BasicUser
 
 
 def insert_user_nt(session: SessionObj, username: str, email:str, password: bytes, is_suspended: bool = False) -> None:
