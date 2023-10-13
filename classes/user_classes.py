@@ -256,7 +256,7 @@ class BasicUser(BaseModel):
 
     username: str
     email: str
-    password: str
+    password: str | bytes
     name: Optional[str]
     description: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
     school_short_name: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
