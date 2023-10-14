@@ -89,7 +89,6 @@ def get_users_via(usernames: list[str] | None = None) -> list[BasicUser]:
                         account_status=result.account_status,
                         # schedule_tag=,
                         created_at=result.created_at,
-                        edited_at=result.edited_at,
                     )
             for result in users_result
             ]

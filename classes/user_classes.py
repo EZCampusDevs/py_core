@@ -261,8 +261,6 @@ class BasicUser(BaseModel):
     account_status: int = 0
     schedule_tag: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
     created_at: Optional[datetime]
-    edited_at: Optional[datetime]
-    
     hashed_password: bytes | None = None
 
     def get_hashed_password(self):

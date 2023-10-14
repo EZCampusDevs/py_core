@@ -70,7 +70,6 @@ def test_usersb():
                 is_suspended=False,
                 account_status=0,
                 created_at=0,
-                edited_at=0,
             )
         ]
 
