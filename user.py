@@ -78,7 +78,7 @@ def get_users_via(usernames: list[str] | None = None) -> list[BasicUser]:
                     BasicUser(
                         username=result.username,
                         email=result.email,
-                        hashed_password=result.password_hash,
+                        password=result.password_hash,
                         name=result.display_name,
                         # description=,
                         # school_short_name=,
@@ -129,7 +129,7 @@ def add_users(users: list[BasicUser] | None = None):
                 u = DT.TBL_User(
                     username=user.username,
                     email=user.email,
-                    password=user.get_hashed_password(),
+                    password_hash=user.get_hashed_password(),
                     display_name=user.name,
                     is_private=user.is_private,
                     is_suspended=user.is_suspended,
