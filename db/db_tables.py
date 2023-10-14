@@ -314,7 +314,6 @@ class TBL_User(DG.Base):
     is_suspended = Column(Boolean, nullable=False)
     account_status = Column(Integer, nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now())
-    edited_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
 
 class TBL_Alembic_Version(DG.Base):
