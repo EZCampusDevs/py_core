@@ -157,8 +157,7 @@ def is_valid_password(password: str) -> bool:
     
     return (
         isinstance(password, str) and
-        len(password) < PASS_MAX_LEN and
-        len(password) > PASS_MIN_LEN
+        PASS_MIN_LEN <= len(password) <= PASS_MAX_LEN
     )
 
 
@@ -213,9 +212,8 @@ def valid_name(name: str) -> bool:
     
     return  (
         name and
-        isinstance(name, str) and 
-        len(name) > NAME_MIN_LEN and 
-        len(name) < NAME_MAX_LEN       
+        isinstance(name, str) and
+        NAME_MIN_LEN <= len(name) <= NAME_MAX_LEN
     )
 
 
@@ -224,7 +222,7 @@ def valid_description(description: str) -> bool:
     return (
         not description or
         (isinstance(description, str) and 
-        len(description) < DESC_MAX_LEN)
+        len(description) <= DESC_MAX_LEN)
     )
 
 
@@ -236,16 +234,12 @@ def valid_program(program: str) -> bool:
     return (
         not program or 
         (isinstance(program, str) and
-         len(program) < PROGRAM_MAX_LEN)
+         len(program) <= PROGRAM_MAX_LEN)
     )
 
 
 def valid_year_of_study(year_of_study: int) -> bool:
-    
-    return (
-         year_of_study < YEAR_OF_STUDY_MAX and
-         year_of_study > YEAR_OF_STUDY_MIN
-    )
+    return YEAR_OF_STUDY_MIN <= year_of_study <= YEAR_OF_STUDY_MAX
 
 
 # ---------- End of Validation Functions ----------
