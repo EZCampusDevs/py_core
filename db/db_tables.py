@@ -304,9 +304,10 @@ class TBL_Report(DG.Base):
 
 class TBL_User(DG.Base):
     __tablename__ = "tbl_user"
+    __table_args__ = (UniqueConstraint("username", name="_username_unique_constraint"),)
 
     user_id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(VARCHAR(128), primary_key=True, nullable=False)
+    username = Column(VARCHAR(128), nullable=False)
     email = Column(VARCHAR(128))
     password_hash = Column(BINARY(length=60), nullable=False)
     display_name = Column(VARCHAR(128))
