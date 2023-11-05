@@ -62,7 +62,6 @@ def add_events(extended_meetings: list[ExtendedMeeting] | None = None):
                         days_of_week=ex_mt.days_of_week,
                     )
                 )
-                session.flush()
 
     except AttributeError as e:
         msg = e.args[0]
