@@ -107,9 +107,9 @@ def get_events_via(event_ids: list[int] | None = None) -> list[ExtendedMeeting]:
                         if isinstance(r.occurrence_until, date)
                         else r.occurrence_repeat  # int based limit.
                     ),
-                    # TODO(Daniel): The DB table structure allows for storage of both a date
-                    #  (occurrence_until) and int (occurrence_repeat) based occurrence_limit. On
-                    #  ExtendedMeeting initialization, a fair assumption must be decided in the
+                    # TODO (py_core issue #13): The DB table structure allows for storage of both a
+                    #  date (occurrence_until) and int (occurrence_repeat) based occurrence_limit.
+                    #  On ExtendedMeeting initialization, a fair assumption must be decided in the
                     #  case both the date and int based limit is defined.
                     days_of_week=r.days_of_week,
                     location=r.location,
