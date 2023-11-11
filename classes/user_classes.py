@@ -13,13 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""User model pydantic schemas.
-
-Notes:
-    Ideally (logically required technically):
-        school_short_name = School.short_name
-        program = ProgramMap.name or ProgramMap.category.
-"""
+"""User model pydantic schemas."""
 
 import base64
 import hashlib
@@ -57,11 +51,11 @@ API_406_EMAIL_INVALID = HTTPException(
 )
 API_406_PASSWORD_INVALID = HTTPException(
     status_code=status.HTTP_406_NOT_ACCEPTABLE,
-    detail=f"Passwords must be [{PASS_MIN_LEN} to {NAME_MAX_LEN}] characters.",
+    detail=f"New passwords must be [{PASS_MIN_LEN} to {NAME_MAX_LEN}] characters.",
 )
 API_406_USERNAME_PASSWORD_MATCH = HTTPException(
     status_code=status.HTTP_406_NOT_ACCEPTABLE,
-    detail="Seriously? Using your username as your password? No.",
+    detail="Username and password cannot be the same.",
 )
 API_406_NAME_INVALID = HTTPException(
     status_code=status.HTTP_406_NOT_ACCEPTABLE,
@@ -81,6 +75,10 @@ API_406_YEAR_OF_STUDY_INVALID = HTTPException(
 )
 HTTP_409_BAD_ACCOUNT_STATUS = HTTPException(
     status_code=status.HTTP_409_CONFLICT, detail="Broken account status."
+)
+API_422_HASHED_PASSWORD_UNPROCESSABLE = HTTPException(
+    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+    detail=f"This hashed password is not acceptable.",
 )
 
 ACCOUNT_STATUS_DELETED = -9
@@ -153,8 +151,7 @@ def valid_email(email: str) -> bool:
     return True
 
 
-def is_valid_password(password: str) -> bool:
-    
+def is_valid_plaintext_password(password: str) -> bool:
     return (
         isinstance(password, str) and
         PASS_MIN_LEN <= len(password) and
@@ -162,10 +159,10 @@ def is_valid_password(password: str) -> bool:
     )
 
 
-def valid_hashed_password(password: str) -> bool:
-    
+def is_valid_hashed_password(password: str) -> bool:
+
     return (
-        isinstance(password, bytes) and 
+        isinstance(password, bytes) and
         len(password) == 60
     )
 
@@ -210,7 +207,7 @@ def verify_password(
 
 
 def valid_name(name: str) -> bool:
-    
+
     return  (
         name and
         isinstance(name, str) and
@@ -220,21 +217,18 @@ def valid_name(name: str) -> bool:
 
 
 def valid_description(description: str) -> bool:
-    
+
     return (
         not description or
-        (isinstance(description, str) and 
+        (isinstance(description, str) and
         len(description) <= DESC_MAX_LEN)
     )
-
-
-# TODO: Warning! No school_short_name validation!
 
 
 def valid_program(program: str) -> bool:
 
     return (
-        not program or 
+        not program or
         (isinstance(program, str) and
          len(program) <= PROGRAM_MAX_LEN)
     )
@@ -247,36 +241,16 @@ def valid_year_of_study(year_of_study: int) -> bool:
 # ---------- End of Validation Functions ----------
 
 
-class BasicUser(BaseModel):
-    """Model used for internal logic."""
-
+class NewUser(BaseModel):
     username: str
     email: str
-    password: str | bytes
-    name: Optional[str]
-    description: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
-    school_short_name: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
-    program: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
-    year_of_study: int = 0  # TODO: Need to implement on the DB with foreign key reference
-    is_private: bool = True
-    is_suspended: bool = False
-    account_status: int = 0
-    schedule_tag: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
-    created_at: Optional[datetime]
-    hashed_password: bytes | None = None
+    password: str | bytes  # A new user will have a plaintext password.
+    # The self password hashing function can be called to self hash and return the hashed password.
+    name: Optional[str]  # Defaults to match username if unspecified.
 
-    def get_hashed_password(self):
-        
-        if self.hashed_password:
-            return self.hashed_password
-
-        self.hashed_password = hash_password(self.password)
-
-        return self.hashed_password
-
-    @validator("hashed_password")
-    def validate_hashpw(cls, v): # make sure hashed_password is always none at creation time
-        return None
+    def self_hash_password(self):
+        self.password = hash_password(self.password)
+        return self.password
 
     @validator("username")
     def validate_username(cls, v):
@@ -292,8 +266,8 @@ class BasicUser(BaseModel):
 
     @validator("password")
     def validate_password(cls, v):
-        if not is_valid_password(v):
-            raise API_406_PASSWORD_INVALID
+        if not is_valid_plaintext_password(v):  # Validate plaintext password on initialization.
+            raise API_406_PASSWORD_INVALID  # Not allowed plaintext password.
         return v
 
     @root_validator()
@@ -307,9 +281,27 @@ class BasicUser(BaseModel):
     @validator("name", always=True)  # https://stackoverflow.com/a/71001357
     def validate_name(cls, v, values):
         if not isinstance(v, str):
-            return v or values["username"]  # Default name to match username if name is unspecified.
+            return v or values["username"]  # If name is unspecified, name defaults to username.
         elif not valid_name(v):
             raise API_406_NAME_INVALID
+        return v
+
+
+class BasicUser(BaseModel):
+    description: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
+    school: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
+    program: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
+    year_of_study: int = 0  # TODO: Need to implement on the DB with foreign key reference
+    is_private: bool = True
+    is_suspended: bool = False
+    account_status: int = 0
+    schedule_tag: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
+    created_at: Optional[datetime]
+
+    @validator("password")  # This validator overrides the inherited validator.
+    def validate_password(cls, v):
+        if not is_valid_hashed_password(v):  # Validate hashed password on initialization.
+            raise API_422_HASHED_PASSWORD_UNPROCESSABLE  # Bad hashed password.
         return v
 
     @validator("description")
