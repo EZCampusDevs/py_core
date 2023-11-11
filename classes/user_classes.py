@@ -287,7 +287,7 @@ class NewUser(BaseModel):
         return v
 
 
-class BasicUser(BaseModel):
+class BasicUser(NewUser):
     description: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
     school: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
     program: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
