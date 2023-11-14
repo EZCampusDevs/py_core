@@ -286,7 +286,7 @@ class NewUser(BaseModel):
         hashed_password = hash_password(v)
         if not is_valid_hashed_password(hashed_password):  # Validate self hashed password.
             raise API_422_HASHED_PASSWORD_UNPROCESSABLE  # Bad hashed password.
-        return v
+        return hashed_password
 
 
 class BasicUser(NewUser):
