@@ -159,8 +159,7 @@ def is_valid_plaintext_password(password: str) -> bool:
     )
 
 
-def is_valid_hashed_password(password: str) -> bool:
-
+def is_valid_hashed_password(password: bytes) -> bool:
     return (
         isinstance(password, bytes) and
         len(password) == 60
@@ -248,10 +247,6 @@ class NewUser(BaseModel):
     # The self password hashing function can be called to self hash and return the hashed password.
     name: Optional[str]  # Defaults to match username if unspecified.
 
-    def self_hash_password(self):
-        self.password = hash_password(self.password)
-        return self.password
-
     @validator("username")
     def validate_username(cls, v):
         if not valid_username(v):
@@ -286,6 +281,13 @@ class NewUser(BaseModel):
             raise API_406_NAME_INVALID
         return v
 
+    @validator("password")  # Secondary validator to hash its own password and validate it.
+    def self_hash_validate(cls, v):
+        hashed_password = hash_password(v)
+        if not is_valid_hashed_password(hashed_password):  # Validate self hashed password.
+            raise API_422_HASHED_PASSWORD_UNPROCESSABLE  # Bad hashed password.
+        return v
+
 
 class BasicUser(NewUser):
     description: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
@@ -297,12 +299,6 @@ class BasicUser(NewUser):
     account_status: int = 0
     schedule_tag: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
     created_at: Optional[datetime]
-
-    @validator("password")  # This validator overrides the inherited validator.
-    def validate_password(cls, v):
-        if not is_valid_hashed_password(v):  # Validate hashed password on initialization.
-            raise API_422_HASHED_PASSWORD_UNPROCESSABLE  # Bad hashed password.
-        return v
 
     @validator("description")
     def validate_description(cls, v):
