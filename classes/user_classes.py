@@ -245,7 +245,6 @@ class NewUser(BaseModel):
     email: str
     password: str | bytes  # A new user will have a plaintext password.
     # The self password hashing function can be called to self hash and return the hashed password.
-    name: Optional[str]  # Defaults to match username if unspecified.
 
     @validator("username")
     def validate_username(cls, v):
@@ -273,14 +272,6 @@ class NewUser(BaseModel):
             raise API_406_USERNAME_PASSWORD_MATCH
         return values
 
-    @validator("name", always=True)  # https://stackoverflow.com/a/71001357
-    def validate_name(cls, v, values):
-        if not isinstance(v, str):
-            return v or values["username"]  # If name is unspecified, name defaults to username.
-        elif not valid_name(v):
-            raise API_406_NAME_INVALID
-        return v
-
     @validator("password")  # Secondary validator to hash its own password and validate it.
     def self_hash_validate(cls, v):
         hashed_password = hash_password(v)
@@ -290,6 +281,7 @@ class NewUser(BaseModel):
 
 
 class BasicUser(NewUser):
+    name: Optional[str]
     description: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
     school: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
     program: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
@@ -298,6 +290,14 @@ class BasicUser(NewUser):
     is_suspended: bool = False
     account_status: int = 0
     created_at: Optional[datetime]
+
+    @validator("name", always=True)  # https://stackoverflow.com/a/71001357.
+    def validate_name(cls, v, values):
+        if not isinstance(v, str):
+            return v or values["username"]  # If name is unspecified, name defaults to username.
+        elif not valid_name(v):
+            raise API_406_NAME_INVALID
+        return v
 
     @validator("description")
     def validate_description(cls, v):
