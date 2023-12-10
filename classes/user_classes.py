@@ -297,7 +297,6 @@ class BasicUser(NewUser):
     is_private: bool = True
     is_suspended: bool = False
     account_status: int = 0
-    schedule_tag: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
     created_at: Optional[datetime]
 
     @validator("description")
