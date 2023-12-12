@@ -280,7 +280,10 @@ class NewUser(BaseModel):
         return hashed_password
 
 
-class BasicUser(NewUser):
+class BasicUser(BaseModel):
+    username: str
+    email: str
+    # password is omitted.
     name: Optional[str]
     description: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
     school: Optional[str]  # TODO: Need to implement on the DB with foreign key reference
@@ -289,7 +292,19 @@ class BasicUser(NewUser):
     is_private: bool = True
     is_suspended: bool = False
     account_status: int = 0
-    created_at: Optional[datetime]
+    created_at: datetime
+
+    @validator("username")
+    def validate_username(cls, v):
+        if not valid_username(v):
+            raise API_406_USERNAME_INVALID
+        return v
+
+    @validator("email")
+    def validate_email(cls, v):
+        if not valid_email(v):
+            raise API_406_EMAIL_INVALID
+        return v
 
     @validator("name", always=True)  # https://stackoverflow.com/a/71001357.
     def validate_name(cls, v, values):
