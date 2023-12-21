@@ -23,11 +23,11 @@ from . db import Session, SessionObj
 from . db import db_globals as DG
 from . db import db_tables as DT
 
-from . classes.user_classes import BasicUser
+from . classes.user_classes import NewUser, BasicUser, new_to_basic_user
 
 
 def insert_user_nt(session: SessionObj, username: str, email:str, password: bytes, is_suspended: bool = False) -> None:
-    
+
     logging.debug(f"Inserting user with name {username} and password with length {len(password)}")
 
     usr = DT.TBL_User()
@@ -37,21 +37,21 @@ def insert_user_nt(session: SessionObj, username: str, email:str, password: byte
     usr.is_suspended = is_suspended
     usr.account_status = 0
     usr.is_private = 1
-    
+
     session.add(usr)
-    
+
 
 def insert_user(session: SessionObj, username: str, email:str, password: bytes, is_suspended: bool = False) -> None:
-    
+
     with Session().begin() as session:
 
         insert_user_nt(session, username, email, password, is_suspended)
-    
+
 
 def select_users_by_name_nt(session: SessionObj, username: str) -> list[DT.TBL_User]:
-    
+
     logging.debug(f"Selecting users with name {username}")
-    
+
     return session.query(DT.TBL_User).filter_by(username = username).all()
 
 
@@ -73,26 +73,24 @@ def get_users_via(usernames: list[str] | None = None) -> list[BasicUser]:
         with Session().begin() as session:
 
             users_result = session.query(DT.TBL_User).filter(DT.TBL_User.username.in_(usernames)).all()
-            
+
             return [
                     BasicUser(
                         username=result.username,
                         email=result.email,
-                        password=result.password_hash,
                         name=result.display_name,
                         # description=,
-                        # school_short_name=,
+                        # school=,
                         # program=,
                         # year_of_study=,
                         is_private=result.is_private,
                         is_suspended=result.is_suspended,
                         account_status=result.account_status,
-                        # schedule_tag=,
                         created_at=result.created_at,
                     )
             for result in users_result
             ]
-        
+
     except AttributeError as e:
 
         msg = e.args[0]
@@ -107,7 +105,7 @@ def get_users_via(usernames: list[str] | None = None) -> list[BasicUser]:
         raise e
 
 
-def add_users(users: list[BasicUser] | None = None):
+def add_users(users: list[NewUser] | None = None):
     """Add BasicUsers to the database table.
 
     Args:
@@ -124,17 +122,18 @@ def add_users(users: list[BasicUser] | None = None):
         with Session().begin() as session:
 
             for user in users:
-                
+                adder = new_to_basic_user(user)
+
                 u = DT.TBL_User(
-                    username=user.username,
-                    email=user.email,
-                    password_hash=user.get_hashed_password(),
-                    display_name=user.name,
-                    is_private=user.is_private,
-                    is_suspended=user.is_suspended,
-                    account_status=user.account_status,
+                    username=adder.username,
+                    email=adder.email,
+                    password_hash=user.password,
+                    display_name=adder.name,
+                    is_private=adder.is_private,
+                    is_suspended=adder.is_suspended,
+                    account_status=adder.account_status,
                 )
-                
+
                 session.add(u)
 
     except AttributeError as e:
