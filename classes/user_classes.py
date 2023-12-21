@@ -91,13 +91,13 @@ ACCOUNT_STATUS_ADMIN = 8
 ACCOUNT_STATUS_DEVELOPER = 9
 
 ACCOUNT_STATUS = {
-    ACCOUNT_STATUS_DELETED ,
-    ACCOUNT_STATUS_BANNED ,
+    ACCOUNT_STATUS_DELETED,
+    ACCOUNT_STATUS_BANNED,
     ACCOUNT_STATUS_STANDARD,
     ACCOUNT_STATUS_CLUB_EXEC,
     ACCOUNT_STATUS_SOCIETY_EXECUTIVE,
     ACCOUNT_STATUS_PRIVILEGED,
-    ACCOUNT_STATUS_ADMIN ,
+    ACCOUNT_STATUS_ADMIN,
     ACCOUNT_STATUS_DEVELOPER,
 }
 
@@ -152,18 +152,11 @@ def valid_email(email: str) -> bool:
 
 
 def is_valid_plaintext_password(password: str) -> bool:
-    return (
-        isinstance(password, str) and
-        PASS_MIN_LEN <= len(password) and
-        len(password) <= PASS_MAX_LEN
-    )
+    return isinstance(password, str) and PASS_MIN_LEN <= len(password) <= PASS_MAX_LEN
 
 
 def is_valid_hashed_password(password: bytes) -> bool:
-    return (
-        isinstance(password, bytes) and
-        len(password) == 60
-    )
+    return isinstance(password, bytes) and len(password) == 60
 
 
 def hash_password(
@@ -206,35 +199,19 @@ def verify_password(
 
 
 def valid_name(name: str) -> bool:
-
-    return  (
-        name and
-        isinstance(name, str) and
-        NAME_MIN_LEN <= len(name) and
-        len(name) <= NAME_MAX_LEN
-    )
+    return name and isinstance(name, str) and NAME_MIN_LEN <= len(name) <= NAME_MAX_LEN
 
 
 def valid_description(description: str) -> bool:
-
-    return (
-        not description or
-        (isinstance(description, str) and
-        len(description) <= DESC_MAX_LEN)
-    )
+    return not description or (isinstance(description, str) and len(description) <= DESC_MAX_LEN)
 
 
 def valid_program(program: str) -> bool:
-
-    return (
-        not program or
-        (isinstance(program, str) and
-         len(program) <= PROGRAM_MAX_LEN)
-    )
+    return not program or (isinstance(program, str) and len(program) <= PROGRAM_MAX_LEN)
 
 
 def valid_year_of_study(year_of_study: int) -> bool:
-    return YEAR_OF_STUDY_MIN <= year_of_study and year_of_study <= YEAR_OF_STUDY_MAX
+    return YEAR_OF_STUDY_MIN <= year_of_study <= YEAR_OF_STUDY_MAX
 
 
 # ---------- End of Validation Functions ----------
