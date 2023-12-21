@@ -337,3 +337,7 @@ class BasicUser(BaseModel):
         if v not in ACCOUNT_STATUS:
             raise HTTP_409_BAD_ACCOUNT_STATUS
         return v
+
+
+def new_to_basic_user(user: NewUser) -> BasicUser:
+    return BasicUser(username=user.username, email=user.email)
