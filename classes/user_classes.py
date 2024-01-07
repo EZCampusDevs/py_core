@@ -13,7 +13,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""User model pydantic schemas."""
+"""User model pydantic schemas.
+
+NewUser:
+    Defines a newly created (minimal) user and specifically deals with password setting (plaintext
+    on declaration and hashed through the pydantic validator for initialization).
+
+BasicUser:
+    Defines the basic user model used internally. Does not handle passwords.
+"""
 
 import base64
 import hashlib
@@ -220,8 +228,8 @@ def valid_year_of_study(year_of_study: int) -> bool:
 class NewUser(BaseModel):
     username: str
     email: str
-    password: str | bytes  # A new user will have a plaintext password.
-    # The self password hashing function can be called to self hash and return the hashed password.
+    password: str | bytes  # A new user will have a plaintext password on initialization.
+    # The plaintext password is hashed by the pydantic validator.
 
     @validator("username")
     def validate_username(cls, v):
